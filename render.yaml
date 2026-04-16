@@ -2,8 +2,12 @@ services:
   - type: web
     name: dream-city-bot-server
     env: docker
+    rootDir: server # Points to the server subdirectory
     plan: free
     region: oregon 
+    buildFilter:
+      paths:
+        - server/**
     envVars:
       - key: PORT
         value: 5000
