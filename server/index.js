@@ -58,13 +58,13 @@ app.post('/api/verify-captcha', async (req, res) => {
  * POST /api/notify-user
  */
 app.post('/api/notify-user', async (req, res) => {
-  const { discordId, status, name } = req.body;
+  const { discordId, status, name, type } = req.body;
 
   if (!discordId || !status || !name) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
-  const result = await sendStatusDM(discordId, status, name);
+  const result = await sendStatusDM(discordId, status, name, type);
   
   if (result.success) {
     res.json({ success: true, message: 'Notification sent' });

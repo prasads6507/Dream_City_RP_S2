@@ -31,13 +31,16 @@ export const checkDiscordDuplicate = async (discordId) => {
 };
 
 /**
- * Submit a public whitelist application
+ * Submit an application for a specific role
  * @param {Object} data - Form data
+ * @param {string} type - Application type (Civilian, EMS, Police, Mechanic)
+ * @param {string} userId - Auth user UID
  */
-export const submitPublicApplication = async (data) => {
-  // Save to Firestore directly
+export const submitApplication = async (data, type, userId) => {
   return await addDoc(collection(db, COLLECTION_NAME), {
     ...data,
+    type,
+    userId,
     status: 'pending',
     createdAt: serverTimestamp()
   });

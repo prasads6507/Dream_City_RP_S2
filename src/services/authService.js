@@ -5,10 +5,50 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
-  updateProfile
+  updateProfile,
+  signInWithPopup,
+  OAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+
+/**
+ * Sign in with Discord OAuth
+ * Returns user credential and syncs profile to Firestore
+ */
+export const signInWithDiscord = async () => {
+  const provider = new OAuthProvider('discord.com');
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
+
+  // Extract Discord details from providerData if available
+  const discordProfile = result._tokenResponse?.rawUserInfo 
+    ? JSON.parse(result._tokenResponse.rawUserInfo) 
+    : null;
+
+  const userData = {
+    name: user.displayName || 'Unnamed Citizen',
+    email: user.email,
+    discordId: discordProfile?.id || user.uid,
+    discordUsername: discordProfile?.username || user.displayName,
+    avatar: user.photoURL,
+    role: 'user',
+    lastLogin: serverTimestamp(),
+  };
+
+  // Sync / Create user document
+  const userRef = doc(db, 'Users', user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, { ...userData, createdAt: serverTimestamp() });
+  } else {
+    // Keep existing role but update other profile info
+    await setDoc(userRef, { ...userData, role: userSnap.data().role }, { merge: true });
+  }
+
+  return result;
+};
 
 /**
  * Register a new user with email/password and store profile in Firestore

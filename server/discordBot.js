@@ -16,7 +16,7 @@ client.once('ready', () => {
  * @param {string} status - 'approved' or 'rejected'
  * @param {string} name - Player name for personalization
  */
-async function sendStatusDM(discordId, status, name) {
+async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
   try {
     // Note: To find a user by ID, the bot must share a server with them or have them in cache
     const user = await client.users.fetch(discordId);
@@ -26,9 +26,10 @@ async function sendStatusDM(discordId, status, name) {
       return { success: false, error: 'User not found' };
     }
 
+    const typeLabel = type.toUpperCase();
     const message = status === 'approved' 
-      ? `✅ Hello ${name}! Your whitelist application for **Dream City RP** has been **APPROVED**. Welcome to the server!`
-      : `❌ Hello ${name}. We regret to inform you that your whitelist application for **Dream City RP** has been **REJECTED**. You may reapply in the future.`;
+      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the department!`
+      : `❌ Hello ${name}. We regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**. You may reapply in the future.`;
 
     await user.send(message);
     console.log(`✉️ DM sent to ${user.tag} (${status})`);
