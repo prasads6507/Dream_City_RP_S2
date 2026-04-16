@@ -11,7 +11,7 @@ const Team = () => {
     { name: 'DCRP || Max', role: 'Staff 4', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=max' },
     { name: 'DCRP || Attitude', role: 'Staff 5', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=attitude' },
     { name: 'DCRP || Tester', role: 'Staff 6', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=tester' },
-    { name: 'DCRP || Ticket Staff', role: 'Staff 7', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=ticket' },
+    { name: 'DCRP || DEVIL', role: 'Staff 7', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=devil' },
   ];
 
   return (
