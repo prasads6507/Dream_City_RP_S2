@@ -17,7 +17,12 @@ import { auth, db } from '../firebase/config';
  * Returns user credential and syncs profile to Firestore
  */
 export const signInWithDiscord = async () => {
-  const provider = new OAuthProvider('discord.com');
+  const provider = new OAuthProvider('oidc.discord');
+  provider.addScope('identify');
+  provider.addScope('email');
+  provider.addScope('guilds');
+  provider.addScope('guilds.members.read');
+  
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 

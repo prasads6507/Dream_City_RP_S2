@@ -129,17 +129,39 @@ const Navbar = () => {
         </div>
 
         {/* Right side actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Staff/Auth links - very subtle */}
-          {userData?.role === 'admin' && (
-            <Link to="/admin" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Dashboard
-            </Link>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           {currentUser ? (
-            <button onClick={handleSignOut} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-              Logout
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {userData?.role === 'admin' && (
+                <Link to="/admin" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Admin
+                </Link>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px 4px 6px', background: 'rgba(255,255,255,0.03)', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <img 
+                  src={userData?.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                  alt="Avatar" 
+                  style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid rgba(167, 139, 250, 0.3)' }} 
+                />
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>{userData?.discordUsername || userData?.name}</span>
+              </div>
+              <button 
+                onClick={handleSignOut} 
+                title="Logout"
+                style={{ 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444', cursor: 'pointer', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+              </button>
+            </div>
           ) : (
             <Link to="/login" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.15)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px' }}
               onMouseEnter={e => e.target.style.color = 'rgba(255,255,255,0.4)'}

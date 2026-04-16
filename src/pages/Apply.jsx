@@ -36,10 +36,42 @@ const Apply = () => {
   }, [userData]);
 
   const departments = [
-    { id: 'civilian', label: 'Civilian', icon: '🏙️', color: '#A78BFA' },
-    { id: 'police', label: 'Police Department', icon: '🚔', color: '#3B82F6' },
-    { id: 'ems', label: 'EMS', icon: '🚑', color: '#EF4444' },
-    { id: 'mechanic', label: 'Mechanic', icon: '🔧', color: '#F59E0B' },
+    { 
+      id: 'civilian', 
+      label: 'Allowlist Application', 
+      desc: 'Submit your application to become a citizen of Dream City.',
+      icon: '🏙️', 
+      badge: 'SEASON 2', 
+      badgeType: 'department',
+      locked: false 
+    },
+    { 
+      id: 'police', 
+      label: 'Police Department', 
+      desc: 'Join the LSPD and protect the streets of our city.',
+      icon: '🚔', 
+      badge: 'ALLOWLIST ONLY', 
+      badgeType: 'membership',
+      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+    },
+    { 
+      id: 'ems', 
+      label: 'EMS Application', 
+      desc: 'Save lives and provide medical assistance to help the injured.',
+      icon: '🚑', 
+      badge: 'ALLOWLIST ONLY', 
+      badgeType: 'membership',
+      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+    },
+    { 
+      id: 'mechanic', 
+      label: 'Mechanic Application', 
+      desc: 'Master the art of repair and help citizens with their vehicles.',
+      icon: '🔧', 
+      badge: 'ALLOWLIST ONLY', 
+      badgeType: 'membership',
+      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+    },
   ];
 
   const handleDiscordLogin = async () => {
@@ -54,8 +86,9 @@ const Apply = () => {
     }
   };
 
-  const startApplication = (type) => {
-    setAppType(type);
+  const startApplication = (dept) => {
+    if (dept.locked) return;
+    setAppType(dept.id);
     setView('form');
     setStep(1);
   };
@@ -85,27 +118,12 @@ const Apply = () => {
     if (!validateStep(3)) return;
     setLoading(true);
     try {
-      // Check for duplicates
       const isDuplicate = await checkDiscordDuplicate(formData.discordId);
-      // We allow re-applying for different departments, but for now we trust the backend logic
-      
       await submitApplication(formData, appType, currentUser.uid);
       setSubmitted(true);
     } catch (err) {
       setError(err.message || 'Failed to submit.');
     } finally { setLoading(false); }
-  };
-
-  const inputStyle = {
-    width: '100%', padding: '14px 18px', background: 'rgba(0, 0, 0, 0.6)',
-    border: '1px solid rgba(167, 139, 250, 0.1)', borderRadius: '14px', color: '#fff',
-    fontSize: '0.95rem', outline: 'none', transition: 'all 0.3s ease',
-  };
-
-  const labelStyle = {
-    display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.6)', fontFamily: '"Orbitron", sans-serif',
-    letterSpacing: '1px', textTransform: 'uppercase',
   };
 
   if (authLoading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loading-spinner" /></div>;
@@ -140,42 +158,74 @@ const Apply = () => {
   );
 
   return (
-    <div style={{ minHeight: '100vh', paddingTop: '120px', paddingBottom: '80px' }}>
-      <div className="sc-container" style={{ maxWidth: view === 'selection' ? '1200px' : '800px' }}>
-        
+    <div style={{ minHeight: '100vh', paddingTop: '120px', paddingBottom: '80px', position: 'relative' }}>
+      <div className="grid-lines" />
+      
+      <div className="sc-container" style={{ position: 'relative', zIndex: 1 }}>
         {view === 'selection' ? (
           <div>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <h1 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '3rem', marginBottom: '12px' }}>Recruitment <span style={{ color: '#A78BFA' }}>Center</span></h1>
-              <p style={{ color: '#94a3b8' }}>Welcome back, <b style={{ color: '#fff' }}>{userData?.discordUsername || userData?.name}</b>! Select a department to apply for.</p>
+            <div style={{ marginBottom: '60px' }}>
+              <h1 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: 'clamp(2rem, 5vw, 3.5rem)', marginBottom: '12px' }}>Available <span style={{ color: '#A78BFA' }}>Applications</span></h1>
+              <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Select an application below to submit your form. All applications are reviewed by our team.</p>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
               {departments.map(dept => (
-                <div key={dept.id} className="sc-card" style={{ padding: '40px 32px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.3s ease' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '20px' }}>{dept.icon}</div>
-                  <h3 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.4rem', marginBottom: '12px' }}>{dept.label}</h3>
-                  <button onClick={() => startApplication(dept.id)} className="sc-btn-outline" style={{ border: `1px solid ${dept.color}`, color: dept.color, width: '100%' }}>
-                    Start Application
+                <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span className={`sc-badge sc-badge-${dept.badgeType}`}>{dept.badge}</span>
+                    <span style={{ fontSize: '2rem' }}>{dept.icon}</span>
+                  </div>
+                  <div>
+                    <h3 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.5rem', marginBottom: '8px' }}>{dept.label}</h3>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>{dept.desc}</p>
+                  </div>
+                  <button 
+                    onClick={() => startApplication(dept)} 
+                    className={dept.locked ? 'sc-btn-outline' : 'sc-btn'} 
+                    style={{ 
+                      marginTop: 'auto', width: '100%', borderRadius: '8px', 
+                      opacity: dept.locked ? 0.35 : 1, filter: dept.locked ? 'grayscale(1)' : 'none',
+                      cursor: dept.locked ? 'not-allowed' : 'pointer',
+                      display: 'flex', gap: '10px'
+                    }}
+                  >
+                    {dept.locked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
+                    Apply Now
                   </button>
                 </div>
               ))}
+              
+              {/* Priority Placeholder Card */}
+              <div className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px', border: '1px dashed rgba(245, 158, 11, 0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span className="sc-badge sc-badge-priority">CLICK HERE TO BUY PRIORITY</span>
+                  <span style={{ fontSize: '2rem' }}>⚡</span>
+                </div>
+                <div>
+                  <h3 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.5rem', marginBottom: '8px' }}>Priority Application</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>Skip the queue and get your application reviewed within 24 hours.</p>
+                </div>
+                <Link to="/store" className="sc-btn-outline" style={{ marginTop: 'auto', width: '100%', borderRadius: '8px', borderColor: 'rgba(245, 158, 11, 0.4)', color: '#f59e0b' }}>
+                   Purchase Priority
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
-          <div>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '40px' }}>
               <button onClick={() => setView('selection')} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, marginBottom: '20px' }}>← Back to Selection</button>
               <h1 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '2.2rem', marginBottom: '10px' }}>
-                Applying for <span style={{ color: departments.find(d => d.id === appType).color }}>{departments.find(d => d.id === appType).label}</span>
+                Applying for <span style={{ color: '#A78BFA' }}>{departments.find(d => d.id === appType).label}</span>
               </h1>
               
               {/* Step indicator */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
                 {[1, 2, 3].map(s => (
                   <div key={s} style={{ 
-                    width: '12px', height: '12px', borderRadius: '50%', 
+                    width: '30px', height: '4px', borderRadius: '2px', 
                     background: step === s ? '#A78BFA' : 'rgba(255,255,255,0.1)',
                     transition: 'all 0.3s'
                   }} />
@@ -183,70 +233,72 @@ const Apply = () => {
               </div>
             </div>
 
-            <div className="sc-card" style={{ padding: '40px' }}>
+            <div className="sc-card" style={{ padding: '48px' }}>
               {error && <div style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '14px', borderRadius: '12px', marginBottom: '24px', textAlign: 'center', fontSize: '0.9rem' }}>⚠️ {error}</div>}
               
               <form onSubmit={handleSubmit}>
                 {step === 1 && (
                   <div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                      <div>
-                        <label style={labelStyle}>Full Name (IC Name)</label>
-                        <input value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} style={inputStyle} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Name (IC Name)</label>
+                        <input className="sc-input" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
                       </div>
-                      <div>
-                        <label style={labelStyle}>Age</label>
-                        <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} style={inputStyle} />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Age</label>
+                        <input className="sc-input" type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
                       </div>
                     </div>
-                    <div style={{ marginBottom: '20px' }}>
-                      <label style={labelStyle}>Discord Username (Prefilled)</label>
-                      <input value={formData.discordId} disabled style={{ ...inputStyle, opacity: 0.6 }} />
+                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Discord Username</label>
+                      <input className="sc-input" value={formData.discordId} disabled style={{ opacity: 0.6 }} />
                     </div>
                     {appType !== 'civilian' && (
-                      <div style={{ marginBottom: '20px' }}>
-                        <label style={labelStyle}>Why do you want to join this department?</label>
-                        <textarea value={formData.departmentReason} onChange={e => setFormData({...formData, departmentReason: e.target.value})} rows={5} style={{ ...inputStyle, resize: 'none' }} placeholder="What drives your choice?" />
+                      <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Why do you want to join this department?</label>
+                        <textarea className="sc-input" value={formData.departmentReason} onChange={e => setFormData({...formData, departmentReason: e.target.value})} rows={5} style={{ resize: 'none' }} placeholder="What drives your choice?" />
                       </div>
                     )}
-                    <div style={{ marginBottom: '20px' }}>
-                      <label style={labelStyle}>RP Experience</label>
-                      <textarea value={formData.rpExperience} onChange={e => setFormData({...formData, rpExperience: e.target.value})} rows={3} style={{ ...inputStyle, resize: 'none' }} />
+                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>RP Experience</label>
+                      <textarea className="sc-input" value={formData.rpExperience} onChange={e => setFormData({...formData, rpExperience: e.target.value})} rows={3} style={{ resize: 'none' }} />
                     </div>
                   </div>
                 )}
 
                 {step === 2 && (
                   <div>
-                    <div style={{ background: 'rgba(167, 139, 250, 0.05)', padding: '24px', borderRadius: '14px', marginBottom: '24px' }}>
-                       <h3 style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px' }}>Scenario Task</h3>
-                       <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.92rem' }}>
+                    <div style={{ background: 'rgba(167, 139, 250, 0.05)', padding: '24px', borderRadius: '12px', marginBottom: '24px', border: '1px solid rgba(167, 139, 250, 0.1)' }}>
+                       <h3 style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px', fontWeight: 800 }}>Scenario Task</h3>
+                       <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6 }}>
                          {appType === 'police' ? "A citizen claims they were robbed, but has no proof. Later, you find the suspect with the items. How do you proceed?" : 
                           appType === 'ems' ? "A mass casualty incident occurs. You are the only one on scene. How do you triage the victims?" :
                           "You see two people arguing in the street about a minor fender bender. Things are getting heated. What do you do?"}
                        </p>
                     </div>
-                    <label style={labelStyle}>Your Response</label>
-                    <textarea value={formData.scenarioAnswer} onChange={e => setFormData({...formData, scenarioAnswer: e.target.value})} rows={8} style={{ ...inputStyle, resize: 'none' }} />
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Your Response</label>
+                    <textarea className="sc-input" value={formData.scenarioAnswer} onChange={e => setFormData({...formData, scenarioAnswer: e.target.value})} rows={8} style={{ resize: 'none' }} />
                   </div>
                 )}
 
                 {step === 3 && (
                   <div>
-                    <label style={labelStyle}>Character Backstory</label>
-                    <textarea value={formData.characterBackstory} onChange={e => setFormData({...formData, characterBackstory: e.target.value})} rows={10} style={{ ...inputStyle, resize: 'none' }} placeholder="Min 150 characters..." />
-                    <p style={{ marginTop: '8px', fontSize: '0.75rem', color: formData.characterBackstory.length < 150 ? '#ef4444' : '#A78BFA' }}>
-                      {formData.characterBackstory.length} / 150 characters
-                    </p>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Character Backstory</label>
+                    <textarea className="sc-input" value={formData.characterBackstory} onChange={e => setFormData({...formData, characterBackstory: e.target.value})} rows={10} style={{ resize: 'none' }} placeholder="Min 150 characters..." />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                      <p style={{ fontSize: '0.75rem', color: formData.characterBackstory.length < 150 ? '#ef4444' : '#22c55e', fontWeight: 700 }}>
+                        {formData.characterBackstory.length} / 150 characters
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '30px' }}>
-                  {step > 1 && <button type="button" onClick={prevStep} className="sc-btn-outline" style={{ flex: 1 }}>Back</button>}
+                <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
+                  {step > 1 && <button type="button" onClick={prevStep} className="sc-btn-outline" style={{ flex: 1, borderRadius: '12px' }}>Back</button>}
                   {step < 3 ? (
-                    <button type="button" onClick={nextStep} className="sc-btn" style={{ flex: step > 1 ? 1 : '1 1 100%' }}>Next Step</button>
+                    <button type="button" onClick={nextStep} className="sc-btn" style={{ flex: step > 1 ? 1 : '1 1 100%', borderRadius: '12px' }}>Next Step</button>
                   ) : (
-                    <button type="submit" className="sc-btn" disabled={loading} style={{ flex: 1 }}>{loading ? 'Submitting...' : 'Complete Application'}</button>
+                    <button type="submit" className="sc-btn" disabled={loading} style={{ flex: 1, borderRadius: '12px' }}>{loading ? 'Submitting...' : 'Complete Application'}</button>
                   )}
                 </div>
               </form>

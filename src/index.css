@@ -47,11 +47,22 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(167, 139, 250, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(167, 139, 250, 0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(rgba(167, 139, 250, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.04) 1px, transparent 1px);
+  background-size: 50px 50px;
   z-index: 0;
+  pointer-events: none;
+}
+
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(167, 139, 250, 0.08) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.08) 1.5px, transparent 1.5px);
+  background-size: 25px 25px;
+  opacity: 0.15;
   pointer-events: none;
 }
 
@@ -59,7 +70,7 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, #000000 75%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.85) 100%);
   z-index: 0;
   pointer-events: none;
 }
@@ -124,18 +135,45 @@ body::after {
 
 /* ===== CARD ===== */
 .sc-card {
-  background: rgba(8, 8, 12, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(167, 139, 250, 0.08);
-  border-radius: 20px;
+  background: rgba(15, 15, 20, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.sc-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 .sc-card:hover {
-  border-color: rgba(167, 139, 250, 0.25);
-  box-shadow: 0 0 40px rgba(167, 139, 250, 0.06);
+  border-color: rgba(167, 139, 250, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
+
+/* ===== STATUS BADGES ===== */
+.sc-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-orbitron);
+  font-weight: 800;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.sc-badge-membership { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+.sc-badge-priority { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.sc-badge-department { background: rgba(167, 139, 250, 0.15); color: #A78BFA; border: 1px solid rgba(167, 139, 250, 0.3); }
 
 /* ===== NEON BORDER ===== */
 .sc-neon-border {
