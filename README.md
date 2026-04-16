@@ -1,16 +1,28 @@
-# React + Vite
+# Dream City Roleplay S2 - Web Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Automated Role Management and Whitelist Application system for Dream City Roleplay S2.
 
-Currently, two official plugins are available:
+## 🚀 Deployment Instructions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Discord Bot Server (Render.com)
+The bot server must be hosted on a persistent platform to stay "Always Online".
+1. Push this repository to **GitHub**.
+2. Sign up at [Render.com](https://render.com) and create a **New > Web Service**.
+3. Select this repository. Render will automatically detect the configuration.
+4. Set the following **Environment Variables** in the Render Dashboard:
+   - `DISCORD_BOT_TOKEN`: Your Bot Token
+   - `DISCORD_GUILD_ID`: `1245797634514354328`
+   - `RECAPTCHA_SECRET_KEY`: Your reCAPTCHA secret
+5. Your server will be live at `https://your-app-name.onrender.com`.
 
-## React Compiler
+### 2. Frontend Website (Vercel)
+1. Deploy the root folder to **Vercel**.
+2. Add an environment variable in Vercel:
+   - **Key**: `VITE_BACKEND_URL`
+   - **Value**: `https://your-app-name.onrender.com` (from step 1)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Local Development
+1. Clone the repo
+2. Run `npm install` in the root
+3. Run `cd server && npm install`
+4. Use `npm run dev` for frontend and `cd server && npm start` for backend.

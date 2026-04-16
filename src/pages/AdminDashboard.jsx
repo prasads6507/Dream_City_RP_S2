@@ -24,7 +24,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await axios.get('http://127.0.0.1:5000/api/health');
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+        const res = await axios.get(`${baseUrl}/api/health`);
         setBackendOnline(res.data.status === 'online');
       } catch (err) {
         setBackendOnline(false);

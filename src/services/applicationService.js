@@ -16,7 +16,8 @@ import { db } from '../firebase/config';
 import axios from 'axios';
 
 const COLLECTION_NAME = 'whitelistApplications';
-const BACKEND_URL = 'http://127.0.0.1:5000'; // Using IP for better local reliability
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'; 
+
 
 /**
  * Check if a Discord ID has already applied (Securely via backend)
