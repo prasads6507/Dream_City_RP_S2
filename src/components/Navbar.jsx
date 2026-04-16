@@ -29,7 +29,7 @@ const Navbar = () => {
   ];
 
   const externalLinks = [
-    { href: '#', label: 'Watch Live', icon: '↗', live: true },
+    // Removed 'Watch Live'
   ];
 
   return (
