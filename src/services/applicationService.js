@@ -78,6 +78,13 @@ export const processApplicationDecision = async (appId, status, appData) => {
   });
 
   // 2. Trigger Backend Discord Notification
+  const isNumeric = /^\d+$/.test(appData.discordId);
+  
+  if (!isNumeric) {
+    console.error('🛑 Automation Aborted: Invalid Discord ID format (Non-numeric).');
+    return; // Stop here to prevent bot errors
+  }
+
   try {
     await axios.post(`${BACKEND_URL}/api/notify-user`, {
       discordId: appData.discordId,

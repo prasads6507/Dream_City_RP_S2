@@ -30,18 +30,30 @@ export const signInWithDiscord = async () => {
   // Extract Discord profile using getAdditionalUserInfo (Standard for OIDC)
   const additionalInfo = getAdditionalUserInfo(result);
   const discordProfile = additionalInfo?.profile || {};
+  
+  // CRITICAL: Ensure we get the numeric Discord ID, not the Firebase UID
+  // If it's not in the profile, try to find it in the providerData
+  const discordUid = discordProfile.id || user.providerData.find(p => p.providerId === 'oidc.discord')?.uid;
 
-  console.log('🤖 Discord Login Success. Profile:', discordProfile);
+  console.log('🤖 Discord Identity Check:', { 
+    profileId: discordProfile.id, 
+    providerUid: user.providerData.find(p => p.providerId === 'oidc.discord')?.uid,
+    firebaseUid: user.uid 
+  });
 
   const userData = {
     name: discordProfile.global_name || discordProfile.username || user.displayName || 'Unnamed Citizen',
     email: user.email,
-    discordId: discordProfile.id || user.uid,
+    discordId: discordUid || null, // DO NOT fallback to user.uid here
     discordUsername: discordProfile.username || user.displayName,
-    avatar: user.photoURL || `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`,
+    avatar: user.photoURL || (discordUid ? `https://cdn.discordapp.com/avatars/${discordUid}/${discordProfile.avatar}.png` : ''),
     role: 'user',
     lastLogin: serverTimestamp(),
   };
+
+  if (!userData.discordId) {
+    console.error('❌ CRITICAL ERROR: Could not capture Numeric Discord ID. Role features will be broken.');
+  }
 
   // Sync / Create user document
   const userRef = doc(db, 'Users', user.uid);

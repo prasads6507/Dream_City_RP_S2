@@ -95,9 +95,15 @@ const Apply = () => {
     setStep(1);
   };
 
+  const isDiscordIdValid = /^\d+$/.test(formData.discordId);
+
   const validateStep = (s) => {
     setError('');
     if (s === 1) {
+      if (!isDiscordIdValid) {
+        setError('Your Discord Identity is not set correctly. Please Log Out and Log In again.');
+        return false;
+      }
       if (!formData.fullName.trim()) { setError('Name is required'); return false; }
       const ageNum = parseInt(formData.age);
       if (isNaN(ageNum) || ageNum < 15) { setError('Minimum age for application is 15.'); return false; }
