@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+/* ===== DREAM CITY DESIGN TOKENS ===== */
+@theme {
+  --color-sc-bg: #000000;
+  --color-sc-dark: #050505;
+  --color-sc-cyan: #A78BFA;
+  --color-sc-cyan-dim: rgba(167, 139, 250, 0.15);
+  --color-sc-cyan-glow: rgba(167, 139, 250, 0.4);
+  --color-sc-text: #ffffff;
+  --color-sc-text-dim: #94a3b8;
+  --color-sc-border: rgba(167, 139, 250, 0.08);
+  --color-sc-card: rgba(8, 8, 12, 0.9);
+
+  --font-orbitron: "Orbitron", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
+
+  --animate-fade-in: fade-in 0.6s ease-out both;
+  --animate-slide-up: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+}
+
+/* ===== GLOBAL RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #000000;
+  color: #ffffff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ===== GRID BACKGROUND ===== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(167, 139, 250, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, #000000 75%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #A78BFA; border-radius: 10px; }
+
+::selection {
+  background: rgba(167, 139, 250, 0.3);
+  color: white;
+}
+
+/* ===== KEYFRAMES ===== */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 5px rgba(167, 139, 250, 0.2); }
+  to { text-shadow: 0 0 20px rgba(167, 139, 250, 0.5), 0 0 40px rgba(167, 139, 250, 0.2); }
+}
+
+@keyframes pulse-cyan {
+  0%,100% { box-shadow: 0 0 15px rgba(167, 139, 250, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(167, 139, 250, 0.6); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== CONTAINER ===== */
+.sc-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ===== CARD ===== */
+.sc-card {
+  background: rgba(8, 8, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(167, 139, 250, 0.08);
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sc-card:hover {
+  border-color: rgba(167, 139, 250, 0.25);
+  box-shadow: 0 0 40px rgba(167, 139, 250, 0.06);
+}
+
+/* ===== NEON BORDER ===== */
+.sc-neon-border {
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.15), inset 0 0 15px rgba(167, 139, 250, 0.05);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.sc-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== BUTTONS ===== */
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: #A78BFA;
+  color: #000000;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+}
+
+.sc-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(167, 139, 250, 0.5);
+  background: #c4b5fd;
+}
+
+.sc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sc-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 31px;
+  background: transparent;
+  color: #ffffff;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-radius: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.sc-btn-outline:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ===== FORM INPUTS ===== */
+.sc-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.sc-input:focus {
+  border-color: #A78BFA;
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15);
+}
+
+.sc-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* Legacy compat */
+.gta-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(167, 139, 250, 0.1);
+  border-radius: 14px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.gta-input:focus {
+  border-color: #A78BFA;
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15);
+}
+
+.gta-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ===== LOADING ===== */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(167, 139, 250, 0.15);
+  border-top: 3px solid #A78BFA;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

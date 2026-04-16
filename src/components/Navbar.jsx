@@ -1,0 +1,232 @@
+import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from '../services/authService';
+
+const Navbar = () => {
+  const { currentUser, userData } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  const isActive = (path) => location.pathname === path;
+
+  const navLinks = [
+    { path: '/', label: 'Home' },
+    { path: '/rules', label: 'Rules' },
+    { path: '/team', label: 'Team' },
+    { path: '/store', label: 'Store' },
+    { path: '/apply', label: 'Applications' },
+  ];
+
+  const externalLinks = [
+    { href: '#', label: 'Watch Live', icon: '↗', live: true },
+  ];
+
+  return (
+    <nav style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 100,
+      background: 'rgba(0, 0, 0, 0.75)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(167, 139, 250, 0.06)',
+    }}>
+      <div className="sc-container" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: '76px',
+      }}>
+        {/* Logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none' }}>
+          <img 
+            src="/images/logo.png" 
+            alt="Dream City" 
+            style={{ 
+              height: '56px', 
+              width: 'auto',
+              filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.3))',
+              transition: 'transform 0.3s ease'
+            }}
+            onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+            onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+          />
+          <span style={{
+            fontFamily: '"Orbitron", sans-serif',
+            fontWeight: 800,
+            fontSize: '1.4rem',
+            color: '#fff',
+            letterSpacing: '2px',
+            textShadow: '0 0 15px rgba(167, 139, 250, 0.4)'
+          }}>
+            DCRP <span style={{ color: '#A78BFA' }}>S2</span>
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-nav">
+          {navLinks.map(link => (
+            <Link
+              key={link.path}
+              to={link.path}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '10px',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.6)',
+                background: isActive(link.path) ? 'rgba(167, 139, 250, 0.08)' : 'transparent',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Inter", sans-serif',
+              }}
+              onMouseEnter={e => { if (!isActive(link.path)) { e.target.style.color = '#fff'; e.target.style.background = 'rgba(255,255,255,0.04)'; }}}
+              onMouseLeave={e => { if (!isActive(link.path)) { e.target.style.color = 'rgba(255,255,255,0.6)'; e.target.style.background = 'transparent'; }}}
+            >
+              {isActive(link.path) && <span style={{ marginRight: '6px', fontSize: '0.5rem' }}>●</span>}
+              {link.label}
+            </Link>
+          ))}
+          {externalLinks.map(link => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: '8px 18px',
+                borderRadius: '10px',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.6)',
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Inter", sans-serif',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
+            >
+              {link.live && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00FF88', display: 'inline-block', boxShadow: '0 0 8px #00FF88' }} />}
+              {link.label} <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>{link.icon}</span>
+            </a>
+          ))}
+        </div>
+
+        {/* Right side actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Staff/Auth links - very subtle */}
+          {userData?.role === 'admin' && (
+            <Link to="/admin" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Dashboard
+            </Link>
+          )}
+          {currentUser ? (
+            <button onClick={handleSignOut} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.15)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '2px' }}
+              onMouseEnter={e => e.target.style.color = 'rgba(255,255,255,0.4)'}
+              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.15)'}
+            >
+              Staff
+            </Link>
+          )}
+
+          {/* Connect Button */}
+          <a
+            href="fivem://connect/dreamcityrp.com"
+            className="sc-btn"
+            style={{ padding: '10px 24px', fontSize: '0.75rem' }}
+          >
+            <span style={{
+              display: 'inline-flex', position: 'relative', width: '8px', height: '8px',
+            }}>
+              <span style={{
+                position: 'absolute', inset: 0, borderRadius: '50%', background: '#000',
+                animation: 'pulse-cyan 2s ease-in-out infinite', opacity: 0.6,
+              }} />
+              <span style={{ position: 'relative', width: '8px', height: '8px', borderRadius: '50%', background: '#000', display: 'block' }} />
+            </span>
+            Connect
+          </a>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              display: 'none',
+              background: 'none',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              padding: '8px',
+            }}
+            className="mobile-toggle"
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              {mobileMenuOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, top: '76px',
+          background: 'rgba(0, 0, 0, 0.97)',
+          backdropFilter: 'blur(20px)',
+          padding: '32px 24px',
+          zIndex: 90,
+          animation: 'fade-in 0.3s ease-out',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {navLinks.map(link => (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  display: 'block', padding: '16px 0',
+                  fontSize: '1.5rem', fontWeight: 700,
+                  color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.6)',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Responsive CSS for mobile toggle */}
+      <style>{`
+        @media (max-width: 900px) {
+          .desktop-nav { display: none !important; }
+          .mobile-toggle { display: block !important; }
+        }
+      `}</style>
+    </nav>
+  );
+};
+
+export default Navbar;
