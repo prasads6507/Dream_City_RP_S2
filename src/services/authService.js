@@ -7,7 +7,8 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
   signInWithPopup,
-  OAuthProvider
+  OAuthProvider,
+  getAdditionalUserInfo
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
@@ -26,17 +27,18 @@ export const signInWithDiscord = async () => {
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 
-  // Extract Discord details from providerData if available
-  const discordProfile = result._tokenResponse?.rawUserInfo 
-    ? JSON.parse(result._tokenResponse.rawUserInfo) 
-    : null;
+  // Extract Discord profile using getAdditionalUserInfo (Standard for OIDC)
+  const additionalInfo = getAdditionalUserInfo(result);
+  const discordProfile = additionalInfo?.profile || {};
+
+  console.log('🤖 Discord Login Success. Profile:', discordProfile);
 
   const userData = {
-    name: user.displayName || 'Unnamed Citizen',
+    name: discordProfile.global_name || discordProfile.username || user.displayName || 'Unnamed Citizen',
     email: user.email,
-    discordId: discordProfile?.id || user.uid,
-    discordUsername: discordProfile?.username || user.displayName,
-    avatar: user.photoURL,
+    discordId: discordProfile.id || user.uid,
+    discordUsername: discordProfile.username || user.displayName,
+    avatar: user.photoURL || `https://cdn.discordapp.com/avatars/${discordProfile.id}/${discordProfile.avatar}.png`,
     role: 'user',
     lastLogin: serverTimestamp(),
   };

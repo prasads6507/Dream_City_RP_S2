@@ -8,6 +8,8 @@ import {
   orderBy,
   doc,
   updateDoc,
+  deleteDoc,
+  writeBatch,
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -98,4 +100,20 @@ export const processApplicationDecision = async (appId, status, appData) => {
       console.error('Failed to update FiveM whitelist:', error.message);
     }
   }
+};
+
+/**
+ * Delete one or more applications
+ * @param {string[]} ids 
+ */
+export const deleteApplications = async (ids) => {
+  if (ids.length === 1) {
+    return await deleteDoc(doc(db, COLLECTION_NAME, ids[0]));
+  }
+
+  const batch = writeBatch(db);
+  ids.forEach(id => {
+    batch.delete(doc(db, COLLECTION_NAME, id));
+  });
+  return await batch.commit();
 };
