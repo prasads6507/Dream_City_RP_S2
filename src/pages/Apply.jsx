@@ -15,9 +15,10 @@ const Apply = () => {
 
   // Form Fields
   const [formData, setFormData] = useState({
-    fullName: '',
+    fullName: '', // Discord Handle
+    discordName: '', // Discord Global Name
     age: '',
-    discordId: '',
+    discordId: '', // Numeric ID
     rpExperience: '',
     departmentReason: '', // Why join PD/EMS/etc
     scenarioAnswer: '',
@@ -29,7 +30,8 @@ const Apply = () => {
     if (userData) {
       setFormData(prev => ({
         ...prev,
-        fullName: userData.discordUsername || userData.name || '',
+        fullName: userData.discordUsername || '',
+        discordName: userData.name || '',
         discordId: userData.discordId || '',
       }));
     }

@@ -82,7 +82,8 @@ export const processApplicationDecision = async (appId, status, appData) => {
     await axios.post(`${BACKEND_URL}/api/notify-user`, {
       discordId: appData.discordId,
       status: status,
-      name: appData.name
+      name: appData.discordName || appData.fullName, // Prefer Global Name for personalization
+      type: appData.type      // Include application type
     });
   } catch (error) {
     console.error('Failed to send Discord notification:', error.message);
@@ -94,7 +95,7 @@ export const processApplicationDecision = async (appId, status, appData) => {
     try {
       await axios.post(`${BACKEND_URL}/api/whitelist-player`, {
         discordId: appData.discordId,
-        name: appData.name
+        name: appData.fullName
       });
     } catch (error) {
       console.error('Failed to update FiveM whitelist:', error.message);

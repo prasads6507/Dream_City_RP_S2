@@ -13,8 +13,8 @@ const client = new Client({
 const ROLE_ID = '1493620549883003031';
 const GUILD_ID = process.env.DISCORD_GUILD_ID;
 
-client.once('ready', () => {
-  console.log(`🤖 Discord Bot logged in as ${client.user.tag}`);
+client.once('ready', (c) => {
+  console.log(`🤖 Discord Bot logged in as ${c.user.tag}`);
 });
 
 /**
@@ -34,10 +34,11 @@ async function assignGuildRole(userId) {
 
     const member = await guild.members.fetch(userId);
     if (!member) {
-      console.error(`❌ Member ${userId} not found in guild ${guild.name}`);
+      console.error(`❌ Member ${userId} not found in guild ${guild.name}. Are they in the server?`);
       return { success: false, error: 'Member not found in server' };
     }
 
+    console.log(`⏳ Attempting to add role ${ROLE_ID} to ${member.user.tag}...`);
     await member.roles.add(ROLE_ID);
     console.log(`✅ Assigned role ${ROLE_ID} to ${member.user.tag}`);
     return { success: true };

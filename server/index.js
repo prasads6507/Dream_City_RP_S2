@@ -24,7 +24,8 @@ try {
   console.warn('⚠️ Firebase Admin SDK not configured correctly. Check firebase-admin.json');
 }
 
-const db = admin.firestore?.() ? admin.firestore() : null;
+const db = admin.apps.length > 0 ? admin.firestore() : null;
+if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initialized)');
 
 // --- API ROUTES ---
 
@@ -59,6 +60,7 @@ app.post('/api/verify-captcha', async (req, res) => {
  */
 app.post('/api/notify-user', async (req, res) => {
   const { discordId, status, name, type } = req.body;
+  console.log(`📬 Received /api/notify-user: ID=${discordId}, Status=${status}, User=${name}`);
 
   if (!discordId || !status || !name) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });

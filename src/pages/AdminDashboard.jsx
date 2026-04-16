@@ -238,12 +238,15 @@ const AdminDashboard = () => {
                       fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#A78BFA',
                       fontSize: '1.2rem'
                     }}>
-                      {app.name?.charAt(0) || '?'}
+                      {(app.discordName || app.fullName || app.name || '?').charAt(0)}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '2px' }}>{app.name}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                         <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Discord: {app.discordId}</span>
+                      <div style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '2px' }}>
+                        {app.discordName || app.fullName || app.name || 'Unknown User'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                         {app.fullName && <span style={{ fontSize: '0.7rem', color: '#A78BFA', fontWeight: 700 }}>@{app.fullName}</span>}
+                         <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>ID: {app.discordId}</span>
                          <span style={{ 
                            fontSize: '0.6rem', padding: '2px 8px', borderRadius: '4px', 
                            background: `${typeColors[app.type]}20`, color: typeColors[app.type],
@@ -315,14 +318,16 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{app.characterBackstory}</div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '16px' }}>
-                    <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
-                      {actionLoading === app.id ? 'Processing...' : '✓ Approve Application'}
-                    </button>
-                    <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
-                      {actionLoading === app.id ? 'Processing...' : '✕ Reject Application'}
-                    </button>
-                  </div>
+                  {app.status === 'pending' && (
+                    <div style={{ display: 'flex', gap: '16px' }}>
+                      <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
+                        {actionLoading === app.id ? 'Processing...' : '✓ Approve Application'}
+                      </button>
+                      <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
+                        {actionLoading === app.id ? 'Processing...' : '✕ Reject Application'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
