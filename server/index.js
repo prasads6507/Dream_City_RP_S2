@@ -43,31 +43,6 @@ if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initia
 // --- API ROUTES ---
 
 /**
- * Verify reCAPTCHA token
- * POST /api/verify-captcha
- */
-app.post('/api/verify-captcha', async (req, res) => {
-  const { token } = req.body;
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-
-  if (!token) return res.status(400).json({ success: false, message: 'Token is required' });
-
-  try {
-    const response = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
-    );
-    
-    if (response.data.success) {
-      res.json({ success: true, message: 'Captcha verified' });
-    } else {
-      res.status(400).json({ success: false, message: 'Captcha verification failed', errors: response.data['error-codes'] });
-    }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal server error' });
-  }
-});
-
-/**
  * Notify User via Discord DM
  * POST /api/notify-user
  */

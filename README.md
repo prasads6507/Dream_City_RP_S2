@@ -12,7 +12,6 @@ The bot server must be hosted on a persistent platform to stay "Always Online".
 4. Set the following **Environment Variables** in the Render Dashboard:
    - `DISCORD_BOT_TOKEN`: Your Bot Token
    - `DISCORD_GUILD_ID`: `1245797634514354328`
-   - `RECAPTCHA_SECRET_KEY`: Your reCAPTCHA secret
 5. Your server will be live at `https://your-app-name.onrender.com`.
 
 ### 2. Frontend Website (Vercel)

@@ -19,5 +19,3 @@ services:
         value: 1493620549883003031
       - key: FIREBASE_SERVICE_ACCOUNT_PATH
         value: ./firebase-admin.json
-      - key: RECAPTCHA_SECRET_KEY
-        sync: false # Set this in Render dashboard
