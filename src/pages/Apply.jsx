@@ -29,8 +29,8 @@ const Apply = () => {
     if (userData) {
       setFormData(prev => ({
         ...prev,
-        fullName: userData.name || '',
-        discordId: userData.discordUsername || userData.discordId || '',
+        fullName: userData.discordUsername || userData.name || '',
+        discordId: userData.discordId || '',
       }));
     }
   }, [userData]);
@@ -241,17 +241,13 @@ const Apply = () => {
                   <div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Full Name (IC Name)</label>
-                        <input className="sc-input" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
+                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Discord Username</label>
+                        <input className="sc-input" value={formData.fullName} disabled style={{ opacity: 0.8 }} />
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Age</label>
                         <input className="sc-input" type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
                       </div>
-                    </div>
-                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Discord Username</label>
-                      <input className="sc-input" value={formData.discordId} disabled style={{ opacity: 0.6 }} />
                     </div>
                     {appType !== 'civilian' && (
                       <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>

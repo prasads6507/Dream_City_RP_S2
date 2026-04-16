@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM } = require('./discordBot');
+const { sendStatusDM, assignGuildRole } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -66,8 +66,13 @@ app.post('/api/notify-user', async (req, res) => {
 
   const result = await sendStatusDM(discordId, status, name, type);
   
+  // Assign Discord role if approved
+  if (status === 'approved') {
+    await assignGuildRole(discordId);
+  }
+  
   if (result.success) {
-    res.json({ success: true, message: 'Notification sent' });
+    res.json({ success: true, message: 'Notification sent and role assigned' });
   } else {
     res.status(500).json({ success: false, message: result.error });
   }

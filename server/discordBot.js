@@ -3,12 +3,49 @@ require('dotenv').config();
 
 // Initialize Discord Bot
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
+  intents: [
+    GatewayIntentBits.Guilds, 
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers // Required to manage roles
+  ]
 });
+
+const ROLE_ID = '1493620549883003031';
+const GUILD_ID = process.env.DISCORD_GUILD_ID;
 
 client.once('ready', () => {
   console.log(`🤖 Discord Bot logged in as ${client.user.tag}`);
 });
+
+/**
+ * Assign a specific role to a user in the guild
+ * @param {string} userId - Discord User ID
+ */
+async function assignGuildRole(userId) {
+  try {
+    const guild = GUILD_ID 
+      ? await client.guilds.fetch(GUILD_ID) 
+      : client.guilds.cache.first();
+
+    if (!guild) {
+      console.error('❌ Could not find Discord Guild. Please set DISCORD_GUILD_ID in .env');
+      return { success: false, error: 'Guild not found' };
+    }
+
+    const member = await guild.members.fetch(userId);
+    if (!member) {
+      console.error(`❌ Member ${userId} not found in guild ${guild.name}`);
+      return { success: false, error: 'Member not found in server' };
+    }
+
+    await member.roles.add(ROLE_ID);
+    console.log(`✅ Assigned role ${ROLE_ID} to ${member.user.tag}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ Failed to assign role to ${userId}:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
 
 /**
  * Send a DM to a user by their Discord ID
@@ -50,4 +87,4 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
   console.warn('⚠️ DISCORD_BOT_TOKEN not configured. Bot will not start.');
 }
 
-module.exports = { sendStatusDM };
+module.exports = { sendStatusDM, assignGuildRole };
