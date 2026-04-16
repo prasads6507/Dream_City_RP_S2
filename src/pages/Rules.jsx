@@ -5,47 +5,42 @@ const Rules = () => {
 
   const ruleSections = [
     {
-      id: 'general',
-      title: 'General Rules',
+      id: 'conduct',
+      title: 'Community Conduct',
       rules: [
-        'Staying updated on any rule modifications on our website or Discord is your responsibility.',
-        'Playing content that is protected by copyright (DMCA) is strictly prohibited. This includes copyrighted movies, music, and other protected materials.',
-        'You must have a working, clear microphone.',
-        'Engaging in Erotic Roleplay (ERP) is strictly prohibited within our community.',
-        'Stream Sniping and Meta-gaming will result in an immediate permanent ban.',
-        'You must stay in character at all times during active roleplay scenarios.',
-        'Do not break the fourth wall or reference game mechanics during RP.',
+        'Respect Everyone: Treat all members with respect. Harassment, insults, discrimination, or personal attacks will not be tolerated.',
+        'Keep It Friendly: This is a community for fun and roleplay. Avoid toxic behavior, arguments, or unnecessary drama.',
+        'No Hate Speech: Racism, casteism, religious hate, or offensive language of any kind is strictly prohibited.',
+        'No Spam or Advertising: Do not spam messages, emojis, or mentions. Advertising or self-promotion is not allowed without staff permission.',
+        'Follow Proper Communication: Use appropriate channels for conversations. Avoid unnecessary pinging of staff or members.',
       ]
     },
     {
-      id: 'account',
-      title: 'Account And Donations',
-      rules: [
-        'Selling or buying accounts/in-game assets for real world money is strictly prohibited.',
-        'Donations are non-refundable and do not grant immunity from server rules.',
-        'Account sharing is not permitted. You are responsible for any actions taken on your account.',
-        'Chargebacks on donations will result in a permanent ban from all services.',
-      ]
-    },
-    {
-      id: 'cheating',
-      title: 'Cheating And Exploiting',
-      rules: [
-        'Using third-party software to gain an advantage (aimbots, wallhacks, etc.) is a lifetime ban.',
-        'Exploiting game bugs or mechanics for personal gain is prohibited. Report bugs to staff immediately.',
-        'Combat logging (disconnecting during active RP or combat) is strictly forbidden.',
-        'Using external communications during RP to share in-character information is metagaming.',
-      ]
-    },
-    {
-      id: 'roleplay',
+      id: 'rp-standards',
       title: 'Roleplay Standards',
       rules: [
-        'New Life Rule (NLR): After being downed and respawning, you forget everything from that scenario.',
-        'Fear RP: You must value your character\'s life. If held at gunpoint, comply realistically.',
-        'RDM (Random Deathmatch): Killing another player without valid RP reason is prohibited.',
-        'VDM (Vehicle Deathmatch): Using vehicles as weapons without RP justification is not allowed.',
-        'Powergaming: Forcing unrealistic actions on others or performing impossible feats is banned.',
+        'Maintain Quality: Always maintain realistic and serious roleplay. Fail RP, RDM (Random Deathmatch), and VDM (Vehicle Deathmatch) are strictly forbidden.',
+        'No Meta Gaming: Using out-of-character information (Discord, streams, etc.) in roleplay is not allowed.',
+        'Value Your Character: Act as if your character’s life matters. Avoid unrealistic or troll behavior during RP situations.',
+      ]
+    },
+    {
+      id: 'admin',
+      title: 'Staff & Reporting',
+      rules: [
+        'Staff Authority: Follow instructions given by admins and moderators. Do not argue publicly—use proper channels or tickets for disputes.',
+        'Reports & Complaints: Submit reports with proper proof. False or misleading reports will result in punishment.',
+        'Prohibited Content: No NSFW, illegal, or inappropriate content. Keep the server safe and clean for everyone.',
+      ]
+    },
+    {
+      id: 'enforcement',
+      title: 'Punishments',
+      rules: [
+        'Warnings: First level of enforcement for minor infractions.',
+        'Mute/Kick: Used for communication issues or immediate disruptions.',
+        'Temporary Ban: Time-sensitive removal from the server.',
+        'Permanent Ban: Lifetime removal for severe or repeated violations.',
       ]
     },
   ];
