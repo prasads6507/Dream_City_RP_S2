@@ -16,7 +16,7 @@ import { db } from '../firebase/config';
 import axios from 'axios';
 
 const COLLECTION_NAME = 'whitelistApplications';
-const BACKEND_URL = 'http://localhost:5000'; // Default dev port
+const BACKEND_URL = 'http://127.0.0.1:5000'; // Using IP for better local reliability
 
 /**
  * Check if a Discord ID has already applied (Securely via backend)
@@ -77,37 +77,44 @@ export const processApplicationDecision = async (appId, status, appData) => {
     updatedAt: serverTimestamp()
   });
 
+  const result = { firestore: true, discord: false, whitelist: false, error: null };
+
   // 2. Trigger Backend Discord Notification
   const isNumeric = /^\d+$/.test(appData.discordId);
   
   if (!isNumeric) {
     console.error('🛑 Automation Aborted: Invalid Discord ID format (Non-numeric).');
-    return; // Stop here to prevent bot errors
+    result.error = 'Invalid Discord ID format';
+    return result;
   }
 
   try {
-    await axios.post(`${BACKEND_URL}/api/notify-user`, {
+    const notifyRes = await axios.post(`${BACKEND_URL}/api/notify-user`, {
       discordId: appData.discordId,
       status: status,
-      name: appData.discordName || appData.fullName, // Prefer Global Name for personalization
-      type: appData.type      // Include application type
+      name: appData.discordName || appData.fullName,
+      type: appData.type
     });
+    result.discord = notifyRes.data.success;
   } catch (error) {
     console.error('Failed to send Discord notification:', error.message);
-    // Non-blocking error for UI
+    result.error = error.message;
   }
 
   // 3. Trigger FiveM Whitelist if approved
   if (status === 'approved') {
     try {
-      await axios.post(`${BACKEND_URL}/api/whitelist-player`, {
+      const whitelistRes = await axios.post(`${BACKEND_URL}/api/whitelist-player`, {
         discordId: appData.discordId,
-        name: appData.fullName
+        name: appData.fullName || appData.discordName
       });
+      result.whitelist = whitelistRes.data.success;
     } catch (error) {
       console.error('Failed to update FiveM whitelist:', error.message);
     }
   }
+
+  return result;
 };
 
 /**

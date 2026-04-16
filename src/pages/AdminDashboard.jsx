@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllApplications, processApplicationDecision, deleteApplications } from '../services/applicationService';
+import axios from 'axios';
 
 const AdminDashboard = () => {
   const [applications, setApplications] = useState([]);
@@ -8,6 +9,7 @@ const AdminDashboard = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [expandedId, setExpandedId] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(false);
   const [toast, setToast] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
 
@@ -18,15 +20,41 @@ const AdminDashboard = () => {
     setLoading(false);
   };
 
+  // Check backend health
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await axios.get('http://127.0.0.1:5000/api/health');
+        setBackendOnline(res.data.status === 'online');
+      } catch (err) {
+        setBackendOnline(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   const handleStatusUpdate = async (app, status) => {
     setActionLoading(app.id);
     try {
-      await processApplicationDecision(app.id, status, app);
+      const result = await processApplicationDecision(app.id, status, app);
+      
       setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status } : a));
-      setToast({ type: 'success', message: `Application ${status}!` });
-      setTimeout(() => setToast(null), 3000);
+      
+      if (status === 'approved') {
+        if (!result.discord) {
+          setToast({ type: 'warning', message: `Approved, but Discord automation failed: ${result.error || 'Check Bot Status'}` });
+        } else {
+          setToast({ type: 'success', message: 'Application approved and Discord role assigned!' });
+        }
+      } else {
+        setToast({ type: 'success', message: 'Application rejected.' });
+      }
+      
+      setTimeout(() => setToast(null), 5000);
     } catch (err) {
-      setToast({ type: 'error', message: 'Action failed.' });
+      setToast({ type: 'error', message: 'Action failed. Check your connection.' });
       setTimeout(() => setToast(null), 3000);
     }
     setActionLoading(null);
@@ -180,11 +208,22 @@ const AdminDashboard = () => {
                 style={{ 
                   background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '8px', color: '#fff', padding: '8px 12px', fontSize: '0.65rem',
-                  fontWeight: 700, cursor: 'pointer'
+                  fontWeight: 700, cursor: 'pointer', marginRight: '12px'
                 }}
               >
                 {selectedIds.size === filtered.length && filtered.length > 0 ? 'Unselect All' : 'Select All Filtered'}
               </button>
+              
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
+                <div style={{ 
+                  width: '8px', height: '8px', borderRadius: '50%', 
+                  background: backendOnline ? '#10b981' : '#ef4444',
+                  boxShadow: backendOnline ? '0 0 10px #10b981' : 'none'
+                }} />
+                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: backendOnline ? '#10b981' : '#ef4444', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Bot: {backendOnline ? 'Online' : 'Offline'}
+                </span>
+              </div>
               <select 
                 value={typeFilter} 
                 onChange={(e) => setTypeFilter(e.target.value)}
