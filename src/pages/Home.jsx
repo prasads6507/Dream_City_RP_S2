@@ -22,8 +22,15 @@ const Home = () => {
       if (video) {
         video.defaultMuted = true;
         video.muted = true;
+        video.loop = true;
         video.play().catch(error => {
           console.warn("Autoplay was prevented by browser:", error);
+        });
+
+        // Fallback for browsers that ignore the loop attribute
+        video.addEventListener('ended', () => {
+          video.currentTime = 0;
+          video.play().catch(e => console.warn("Loop play prevented:", e));
         });
       }
     }
