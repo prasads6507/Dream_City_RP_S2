@@ -163,7 +163,8 @@ const Apply = () => {
     try {
       // Check for duplicates again just in case
       const apps = await getUserApplications(formData.discordId);
-      const isDuplicate = apps.some(app => app.type === appType);
+      // ONLY reject if there is a Pending or Approved app
+      const isDuplicate = apps.some(app => app.type === appType && app.status !== 'rejected');
       
       if (isDuplicate) {
         throw new Error(`You have already submitted a ${appType} application.`);
@@ -229,12 +230,16 @@ const Apply = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
               {departments.map(dept => {
                 let existingApp = userApplications.find(app => app.type === dept.id);
+                // If rejected, allows user to apply again (Reset existingApp for logic)
+                if (existingApp?.status === 'rejected') existingApp = null;
+
                 const isLocked = dept.locked;
                 
                 // Role-based status for existing members
                 const userRole = userData?.role?.toLowerCase() || '';
                 const isMember = ['civilian', 'police', 'pd', 'ems', 'mechanic'].includes(userRole);
-                
+                const isCivilianApproved = userApplications.some(app => app.type === 'civilian' && app.status === 'approved') || isMember;
+
                 if (!existingApp) {
                   // If user is already a member of any dept, they are approved for Civilian
                   if (dept.id === 'civilian' && isMember) {
@@ -247,6 +252,9 @@ const Apply = () => {
                     existingApp = { status: 'approved' };
                   }
                 }
+
+                // PREREQUISITE: Only let them apply for specialty depts if Civilian is Approved
+                const canApply = dept.id === 'civilian' || isCivilianApproved;
                 
                 return (
                   <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -259,37 +267,62 @@ const Apply = () => {
                       <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>{dept.desc}</p>
                     </div>
                     
-                    {existingApp ? (
+                    {isLocked ? (
+                      <button 
+                        className="sc-btn-outline" 
+                        disabled 
+                        style={{ 
+                          marginTop: 'auto', width: '100%', borderRadius: '8px', 
+                          opacity: 0.35, filter: 'grayscale(1)',
+                          cursor: 'not-allowed',
+                          display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center'
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        Recruitment Closed
+                      </button>
+                    ) : existingApp ? (
                       <div style={{ 
                         marginTop: 'auto', 
                         padding: '16px', 
-                        borderRadius: '12px', 
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        textAlign: 'center'
+                        borderRadius: '16px', 
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px'
                       }}>
-                        <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', marginBottom: '4px', fontWeight: 700 }}>Application Status</p>
-                        <p style={{ 
-                          fontFamily: '"Outfit", sans-serif', 
-                          fontWeight: 900, 
-                          color: existingApp.status === 'approved' ? '#22c55e' : (existingApp.status === 'rejected' ? '#ef4444' : '#f59e0b'),
-                          textTransform: 'uppercase'
+                        <p style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#64748b', fontWeight: 800, margin: 0 }}>Portal Status</p>
+                        <span style={{
+                          padding: '6px 16px', borderRadius: '20px', fontSize: '0.65rem',
+                          fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
+                          background: existingApp.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                          color: existingApp.status === 'approved' ? '#10b981' : '#A78BFA',
+                          border: '1px solid rgba(255,255,255,0.04)',
                         }}>
                           {existingApp.status}
-                        </p>
+                        </span>
                       </div>
+                    ) : !canApply ? (
+                      <button 
+                        className="sc-btn-outline" 
+                        disabled 
+                        style={{ 
+                          marginTop: 'auto', width: '100%', borderRadius: '8px', 
+                          opacity: 0.5, cursor: 'not-allowed',
+                          fontSize: '0.75rem', fontWeight: 800
+                        }}
+                      >
+                        🔏 Allowlist Required
+                      </button>
                     ) : (
                       <button 
                         onClick={() => startApplication(dept)} 
-                        className={isLocked ? 'sc-btn-outline' : 'sc-btn'} 
-                        style={{ 
-                          marginTop: 'auto', width: '100%', borderRadius: '8px', 
-                          opacity: isLocked ? 0.35 : 1, filter: isLocked ? 'grayscale(1)' : 'none',
-                          cursor: isLocked ? 'not-allowed' : 'pointer',
-                          display: 'flex', gap: '10px'
-                        }}
+                        className="sc-btn" 
+                        style={{ marginTop: 'auto', width: '100%', borderRadius: '8px' }}
                       >
-                        {isLocked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
                         Apply Now
                       </button>
                     )}
