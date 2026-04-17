@@ -359,7 +359,7 @@ const AdminDashboard = () => {
         {activeTab === 'applications' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
             <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #A78BFA' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Total Registered Users</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Total Admins</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff' }}>{users.length}</div>
             </div>
             <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #F59E0B' }}>
