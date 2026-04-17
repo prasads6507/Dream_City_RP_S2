@@ -230,8 +230,8 @@ const Navbar = () => {
       {/* Mobile Menu Drawer */}
       <div style={{
         position: 'fixed', top: '76px', right: 0, bottom: 0,
-        width: '280px', maxWidth: '80vw',
-        background: 'rgba(5, 5, 8, 0.85)',
+        width: '100%',
+        background: 'rgba(5, 5, 8, 0.95)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         borderLeft: '1px solid rgba(167, 139, 250, 0.15)',
