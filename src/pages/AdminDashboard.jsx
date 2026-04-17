@@ -28,6 +28,7 @@ const AdminDashboard = () => {
 
   // Pagination State
   const [staffPage, setStaffPage] = useState(1);
+  const [appPage, setAppPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
   // Subscribe to Application Locks
@@ -39,9 +40,13 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => { 
-    if (activeTab === 'applications') fetchApps();
-    else fetchUsers();
-  }, [activeTab]);
+    fetchApps();
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    setAppPage(1);
+  }, [filter, typeFilter]);
 
   const fetchApps = async () => {
     setLoading(true);
@@ -261,6 +266,11 @@ const AdminDashboard = () => {
     return matchesStatus && matchesType;
   });
 
+  const indexOfLastApp = appPage * itemsPerPage;
+  const indexOfFirstApp = indexOfLastApp - itemsPerPage;
+  const currentApps = filtered.slice(indexOfFirstApp, indexOfLastApp);
+  const totalAppPages = Math.ceil(filtered.length / itemsPerPage);
+
   const counts = {
     all: applications.length,
     pending: applications.filter(a => a.status === 'pending').length,
@@ -344,6 +354,28 @@ const AdminDashboard = () => {
             Staff Management
           </button>
         </div>
+
+        {/* Metrics Overview */}
+        {activeTab === 'applications' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #A78BFA' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Total Registered Users</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff' }}>{users.length}</div>
+            </div>
+            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #F59E0B' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Pending Applications</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#F59E0B' }}>{counts.pending}</div>
+            </div>
+            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #10b981' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Approved Applications</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#10b981' }}>{counts.approved}</div>
+            </div>
+            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #ef4444' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Rejected Applications</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ef4444' }}>{counts.rejected}</div>
+            </div>
+          </div>
+        )}
 
         {/* Header & Filters */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px', marginBottom: '40px' }}>
@@ -462,7 +494,7 @@ const AdminDashboard = () => {
               <div className="sc-card" style={{ padding: '80px', textAlign: 'center', opacity: 0.3 }}>
                 <p style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '2px' }}>Queue is empty</p>
               </div>
-            ) : filtered.map(app => (
+            ) : currentApps.map(app => (
               <div key={app.id} className="sc-card" style={{ border: selectedIds.has(app.id) ? '1px solid #A78BFA' : expandedId === app.id ? '1px solid rgba(167,139,250,0.3)' : '1px solid rgba(255,255,255,0.02)' }}>
                 <div style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -583,6 +615,50 @@ const AdminDashboard = () => {
                 )}
               </div>
             ))}
+            
+            {/* Applications Pagination */}
+            {totalAppPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '40px' }}>
+                <button 
+                  disabled={appPage === 1}
+                  onClick={() => setAppPage(p => p - 1)}
+                  className="sc-btn-outline"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', opacity: appPage === 1 ? 0.3 : 1 }}
+                >
+                  ← Previous
+                </button>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {Array.from({ length: totalAppPages }).map((_, i) => {
+                    const startNum = (i * itemsPerPage) + 1;
+                    const endNum = Math.min((i + 1) * itemsPerPage, filtered.length);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setAppPage(i + 1)}
+                        style={{
+                          padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)',
+                          background: appPage === i + 1 ? '#A78BFA' : 'rgba(255,255,255,0.03)',
+                          color: appPage === i + 1 ? '#000' : '#fff', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer'
+                        }}
+                      >
+                        {startNum}-{endNum}
+                      </button>
+                    )
+                  })}
+                </div>
+                <button 
+                  disabled={appPage === totalAppPages}
+                  onClick={() => setAppPage(p => p + 1)}
+                  className="sc-btn-outline"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', opacity: appPage === totalAppPages ? 0.3 : 1 }}
+                >
+                  Next →
+                </button>
+                <span style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '12px' }}>
+                  Total {filtered.length}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           /* Staff Management View */
@@ -686,20 +762,24 @@ const AdminDashboard = () => {
                 >
                   ← Previous
                 </button>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  {Array.from({ length: totalStaffPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setStaffPage(i + 1)}
-                      style={{
-                        width: '32px', height: '32px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)',
-                        background: staffPage === i + 1 ? '#A78BFA' : 'rgba(255,255,255,0.03)',
-                        color: staffPage === i + 1 ? '#000' : '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer'
-                      }}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  {Array.from({ length: totalStaffPages }).map((_, i) => {
+                    const startNum = (i * itemsPerPage) + 1;
+                    const endNum = Math.min((i + 1) * itemsPerPage, filteredAdmins.length);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setStaffPage(i + 1)}
+                        style={{
+                          padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)',
+                          background: staffPage === i + 1 ? '#A78BFA' : 'rgba(255,255,255,0.03)',
+                          color: staffPage === i + 1 ? '#000' : '#fff', fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer'
+                        }}
+                      >
+                        {startNum}-{endNum}
+                      </button>
+                    )
+                  })}
                 </div>
                 <button 
                   disabled={staffPage === totalStaffPages}
