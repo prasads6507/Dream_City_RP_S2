@@ -40,6 +40,7 @@ try {
   }
 
   if (serviceAccount) {
+    global.foundServiceAccount = serviceAccount;
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
@@ -59,11 +60,21 @@ if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initia
 // Health Check
 app.get('/api/health', (req, res) => {
   try {
+    let saInfo = 'Not Found';
+    if (global.foundServiceAccount) {
+      saInfo = {
+        project_id: global.foundServiceAccount.project_id,
+        client_email: global.foundServiceAccount.client_email,
+        has_private_key: !!global.foundServiceAccount.private_key
+      };
+    }
+
     res.json({ 
       status: 'online', 
-      version: '1.2.2-stable', // Latest version identifier
+      version: '1.2.3-debug-auth', 
       bot: !!process.env.DISCORD_BOT_TOKEN,
-      db: !!db
+      db: !!db,
+      service_account: saInfo
     });
   } catch (err) {
     res.status(500).json({ error: 'Health check failed', details: err.message });
