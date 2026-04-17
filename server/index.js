@@ -141,17 +141,25 @@ app.delete('/api/users/:uid', async (req, res) => {
   const { uid } = req.params;
 
   try {
-    // 1. Delete from Firebase Auth
-    await admin.auth().deleteUser(uid);
-    console.log(`👤 Deleted Auth User: ${uid}`);
+    // 1. Delete from Firebase Auth (if they exist)
+    try {
+      await admin.auth().deleteUser(uid);
+      console.log(`👤 Deleted Auth User: ${uid}`);
+    } catch (authError) {
+      if (authError.code === 'auth/user-not-found') {
+        console.warn(`⚠️ User ${uid} already missing from Auth.`);
+      } else {
+        throw authError;
+      }
+    }
 
-    // 2. Delete from Firestore
+    // 2. Delete from Firestore (Always attempt)
     if (db) {
       await db.collection('Users').doc(uid).delete();
       console.log(`📄 Deleted Firestore Doc: ${uid}`);
     }
 
-    res.json({ success: true, message: 'User permanently deleted from all systems.' });
+    res.json({ success: true, message: 'User permanently removed.' });
   } catch (error) {
     console.error('❌ Deletion failed:', error.message);
     res.status(500).json({ success: false, message: error.message });
