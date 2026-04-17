@@ -13,14 +13,61 @@ const PORT = process.env.PORT || 5000;
 app.use(cors()); // Simplified to allow all for production stability
 app.use(express.json());
 
+// Initialize Firebase Admin
+try {
+  const fs = require('fs');
+  const path = require('path');
+  
+  // Try several potential paths for the secret file
+  const potentialPaths = [
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+    './firebase-admin.json',
+    '../firebase-admin.json',
+    '/app/firebase-admin.json',
+    path.join(__dirname, 'firebase-admin.json'),
+    path.join(__dirname, '..', 'firebase-admin.json')
+  ].filter(Boolean);
+
+  let serviceAccount = null;
+  let foundPath = null;
+
+  for (const p of potentialPaths) {
+    if (fs.existsSync(p)) {
+      serviceAccount = require(path.resolve(p));
+      foundPath = p;
+      break;
+    }
+  }
+
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log(`🔥 Firebase Admin initialized using: ${foundPath}`);
+  } else {
+    throw new Error('No valid firebase-admin.json found in any potential path.');
+  }
+} catch (error) {
+  console.warn('⚠️ Firebase Admin SDK not configured correctly. ' + error.message);
+}
+
+const db = admin.apps.length > 0 ? admin.firestore() : null;
+if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initialized)');
+
+// --- API ROUTES ---
+
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'online', 
-    version: '1.2.1-master-fix', // Latest version identifier
-    bot: !!process.env.DISCORD_BOT_TOKEN,
-    db: !!db
-  });
+  try {
+    res.json({ 
+      status: 'online', 
+      version: '1.2.2-stable', // Latest version identifier
+      bot: !!process.env.DISCORD_BOT_TOKEN,
+      db: !!db
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Health check failed', details: err.message });
+  }
 });
 
 /**
@@ -75,49 +122,6 @@ app.post('/api/users', async (req, res) => {
     res.status(400).json({ success: false, message: userMessage, originalError: error.message });
   }
 });
-
-// Initialize Firebase Admin
-try {
-  const fs = require('fs');
-  const path = require('path');
-  
-  // Try several potential paths for the secret file
-  const potentialPaths = [
-    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
-    './firebase-admin.json',
-    '../firebase-admin.json',
-    '/app/firebase-admin.json',
-    path.join(__dirname, 'firebase-admin.json'),
-    path.join(__dirname, '..', 'firebase-admin.json')
-  ].filter(Boolean);
-
-  let serviceAccount = null;
-  let foundPath = null;
-
-  for (const p of potentialPaths) {
-    if (fs.existsSync(p)) {
-      serviceAccount = require(path.resolve(p));
-      foundPath = p;
-      break;
-    }
-  }
-
-  if (serviceAccount) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    console.log(`🔥 Firebase Admin initialized using: ${foundPath}`);
-  } else {
-    throw new Error('No valid firebase-admin.json found in any potential path.');
-  }
-} catch (error) {
-  console.warn('⚠️ Firebase Admin SDK not configured correctly. ' + error.message);
-}
-
-const db = admin.apps.length > 0 ? admin.firestore() : null;
-if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initialized)');
-
-// --- API ROUTES ---
 
 /**
  * Notify User via Discord DM
