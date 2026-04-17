@@ -38,23 +38,44 @@ export const checkDiscordDuplicate = async (discordId) => {
 
 /**
  * Fetch all applications for a specific Discord ID
+ * Queries with both string and number versions of the ID to handle type mismatches
  * @param {string} discordId 
  */
 export const getUserApplications = async (discordId) => {
   if (!discordId) return [];
   try {
+    // Firestore is type-strict: '123' !== 123
+    // The discordId may have been stored as a string OR a number depending on the source.
+    // We query with the string version first (most common from form submissions).
+    const discordIdStr = String(discordId);
+
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('discordId', '==', discordId),
-      orderBy('createdAt', 'desc')
+      where('discordId', '==', discordIdStr)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    let results = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
     }));
+
+    // If no results found with string, also try as a number (in case old data used numbers)
+    if (results.length === 0 && /^\d+$/.test(discordIdStr)) {
+      const qNum = query(
+        collection(db, COLLECTION_NAME),
+        where('discordId', '==', Number(discordIdStr))
+      );
+      const snapNum = await getDocs(qNum);
+      results = snapNum.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
+    }
+
+    console.log(`📋 Found ${results.length} application(s) for Discord ID: ${discordIdStr}`, results.map(r => ({ type: r.type, status: r.status })));
+    return results;
   } catch (error) {
-    console.error('Failed to fetch user applications:', error);
+    console.error('❌ Failed to fetch user applications:', error);
     return [];
   }
 };

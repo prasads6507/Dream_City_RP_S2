@@ -45,6 +45,12 @@ const Apply = () => {
   // Prefill when user data is available & Fetch applications
   useEffect(() => {
     if (userData) {
+      console.log('👤 User data loaded:', { 
+        discordId: userData.discordId, 
+        role: userData.role, 
+        name: userData.discordUsername 
+      });
+
       setFormData(prev => ({
         ...prev,
         fullName: userData.discordUsername || '',
@@ -52,15 +58,23 @@ const Apply = () => {
         discordId: userData.discordId || '',
       }));
 
-      // Fetch existing applications
-      if (userData.discordId) {
+      // Fetch existing applications for this Discord ID
+      const discordId = userData.discordId;
+      if (discordId) {
         const fetchApps = async () => {
           setLoadingApps(true);
-          const apps = await getUserApplications(userData.discordId);
-          setUserApplications(apps);
+          try {
+            const apps = await getUserApplications(discordId);
+            console.log('📋 User applications loaded:', apps);
+            setUserApplications(apps);
+          } catch (err) {
+            console.error('❌ Error fetching applications:', err);
+          }
           setLoadingApps(false);
         };
         fetchApps();
+      } else {
+        console.warn('⚠️ No discordId found on user profile — cannot look up applications.');
       }
     }
   }, [userData]);
@@ -232,6 +246,9 @@ const Apply = () => {
             <div style={{ marginBottom: '60px' }}>
               <h1 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: 'clamp(2rem, 5vw, 3.5rem)', marginBottom: '12px' }}>Available <span style={{ color: '#A78BFA' }}>Applications</span></h1>
               <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Select an application below to submit your form. All applications are reviewed by our team.</p>
+              {loadingApps && (
+                <p style={{ color: '#A78BFA', fontSize: '0.85rem', marginTop: '12px', fontWeight: 600 }}>⏳ Checking your application history...</p>
+              )}
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
