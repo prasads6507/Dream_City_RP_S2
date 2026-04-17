@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllApplications, processApplicationDecision, deleteApplications } from '../services/applicationService';
-import { getAllUsers, updateUserRole, signUp } from '../services/authService';
+import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFromBackend } from '../services/authService';
 import axios from 'axios';
 
 const AdminDashboard = () => {
@@ -36,7 +36,13 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
-    try { setUsers(await getAllUsers()); } catch (err) { console.error(err); }
+    try { 
+      // Use backend-driven fetch for better reliability and linkage
+      const adminList = await fetchAdminsFromBackend();
+      setUsers(adminList);
+    } catch (err) { 
+      console.error('Fetch Users Error:', err); 
+    }
     setLoading(false);
   };
 
@@ -151,15 +157,14 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const { email, password, name, discordUsername } = newAdmin;
-      // We use the existing signUp but we need a way to force Admin.
-      // Since existing signUp sets role: 'user', we call updateUserRole immediately after.
-      const userCred = await signUp(email, password, name, discordUsername);
-      await updateUserRole(userCred.user.uid, 'admin');
       
-      setToast({ type: 'success', message: 'New Admin account created successfully!' });
+      // Use Backend Silent Creation to prevent logout
+      await createAdminAccount({ email, password, name, discordUsername, role: 'admin' });
+      
+      setToast({ type: 'success', message: `Admin account for ${name} created successfully!` });
       setShowAddAdmin(false);
       setNewAdmin({ email: '', password: '', name: '', discordUsername: '' });
-      fetchUsers();
+      fetchUsers(); // Refresh list from backend
     } catch (err) {
       setToast({ type: 'error', message: err.message || 'Failed to create admin.' });
     }

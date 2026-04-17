@@ -143,6 +143,25 @@ export const getAllUsers = async () => {
 };
 
 /**
+ * Fetch admins directly from backend for better consistency and performance.
+ */
+export const fetchAdminsFromBackend = async () => {
+  const axios = (await import('axios')).default;
+  const rawUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+  const BACKEND_URL = rawUrl.replace(/\/$/, '');
+  
+  try {
+    console.log('📡 Fetching Admin List from Backend...');
+    const res = await axios.get(`${BACKEND_URL}/api/users`);
+    return res.data.users || [];
+  } catch (error) {
+    console.error('Fetch Admins Failed:', error.message);
+    // Fallback to client-side Firestore if backend is down
+    return await getAllUsers();
+  }
+};
+
+/**
  * Update a user's role in Firestore
  * @param {string} uid - Target user UID
  * @param {string} role - New role ('user', 'admin', etc.)
@@ -168,5 +187,23 @@ export const deleteAdminAccount = async (uid) => {
   } catch (error) {
     console.error('Delete User Failed:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || 'Failed to delete user account');
+  }
+};
+
+/**
+ * Create a new Admin account silenty (via Backend)
+ * This prevents the current admin from being logged out in the browser.
+ */
+export const createAdminAccount = async (adminData) => {
+  const axios = (await import('axios')).default;
+  const rawUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+  const BACKEND_URL = rawUrl.replace(/\/$/, '');
+  
+  try {
+    const res = await axios.post(`${BACKEND_URL}/api/users`, adminData);
+    return res.data;
+  } catch (error) {
+    console.error('Silent Creation Failed:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to create admin account');
   }
 };

@@ -166,6 +166,58 @@ app.delete('/api/users/:uid', async (req, res) => {
   }
 });
 
+/**
+ * Filtered Staff Feed
+ * GET /api/users
+ */
+app.get('/api/users', async (req, res) => {
+  if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
+  try {
+    const snapshot = await db.collection('Users').where('role', '==', 'admin').get();
+    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * Silent User Creation (Backend only)
+ * POST /api/users
+ */
+app.post('/api/users', async (req, res) => {
+  const { email, password, name, discordUsername, role } = req.body;
+  if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
+
+  try {
+    // 1. Create in Firebase Auth using Admin SDK (No logout for current user)
+    const userRecord = await admin.auth().createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    const uid = userRecord.uid;
+
+    // 2. Create profile in Firestore
+    const userData = {
+      name,
+      email,
+      discordUsername: discordUsername || '',
+      role: role || 'admin',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db.collection('Users').doc(uid).set(userData);
+    console.log(`✅ Formally added Admin: ${uid}`);
+
+    res.json({ success: true, user: { id: uid, ...userData } });
+  } catch (error) {
+    console.error('❌ User creation failed:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
