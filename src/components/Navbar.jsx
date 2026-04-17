@@ -230,27 +230,32 @@ const Navbar = () => {
       {/* Mobile Menu Drawer */}
       <div style={{
         position: 'fixed', top: '76px', right: 0, bottom: 0,
-        width: '280px',
-        background: 'rgba(10, 10, 12, 0.98)',
-        borderLeft: '1px solid rgba(167, 139, 250, 0.1)',
+        width: '280px', maxWidth: '80vw',
+        background: 'rgba(5, 5, 8, 0.85)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderLeft: '1px solid rgba(167, 139, 250, 0.15)',
         padding: '32px 24px',
         zIndex: 90,
         transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
-        boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
+        boxShadow: '-15px 0 40px rgba(0,0,0,0.7)',
+        overflowY: 'auto',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {navLinks.map(link => (
             <Link
               key={link.path}
               to={link.path}
               onClick={() => setMobileMenuOpen(false)}
               style={{
-                display: 'block', padding: '16px 0',
-                fontSize: '1.2rem', fontWeight: 700,
-                color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.6)',
+                display: 'block', padding: '14px 0',
+                fontSize: '1.25rem', fontWeight: 700,
+                lineHeight: 1.5,
+                color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.7)',
                 textDecoration: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                letterSpacing: '0.5px'
               }}
             >
               {link.label}
