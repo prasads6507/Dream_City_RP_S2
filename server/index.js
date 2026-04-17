@@ -17,6 +17,7 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'online', 
+    version: '1.2.0-silent-auth', // Version tracking to verify deployment
     bot: !!process.env.DISCORD_BOT_TOKEN,
     db: !!db
   });
