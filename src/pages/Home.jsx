@@ -3,23 +3,29 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [isMuted, setIsMuted] = useState(true);
-  const videoRef = useRef(null);
+  const videoContainerRef = useRef(null);
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !videoRef.current.muted;
-      setIsMuted(videoRef.current.muted);
+    if (videoContainerRef.current) {
+      const video = videoContainerRef.current.querySelector('video');
+      if (video) {
+        video.muted = !video.muted;
+        setIsMuted(video.muted);
+      }
     }
   };
 
   // Force autoplay on iOS
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.defaultMuted = true;
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(error => {
-        console.warn("Autoplay was prevented by browser:", error);
-      });
+    if (videoContainerRef.current) {
+      const video = videoContainerRef.current.querySelector('video');
+      if (video) {
+        video.defaultMuted = true;
+        video.muted = true;
+        video.play().catch(error => {
+          console.warn("Autoplay was prevented by browser:", error);
+        });
+      }
     }
   }, []);
 
@@ -44,26 +50,28 @@ const Home = () => {
         alignItems: 'center',
         overflow: 'hidden',
       }}>
-        {/* Background Video */}
-        <video 
-          ref={videoRef}
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          webkit-playsinline="true"
-          preload="auto"
+        {/* Background Video - Rendered via dangerouslySetInnerHTML to enforce iOS Safari strict autoplay policies */}
+        <div 
+          ref={videoContainerRef}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            filter: 'brightness(0.9) saturate(1.1)', // Maximally clear while fitting tone
+            position: 'absolute', inset: 0, width: '100%', height: '100%'
           }}
-        >
-          <source src="/background.mp4" type="video/mp4" />
-        </video>
+          dangerouslySetInnerHTML={{
+            __html: `
+              <video 
+                autoplay 
+                loop 
+                muted 
+                playsinline 
+                webkit-playsinline
+                preload="auto"
+                style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9) saturate(1.1); pointer-events: none;"
+              >
+                <source src="/background.mp4" type="video/mp4" />
+              </video>
+            `
+          }}
+        />
         {/* Lighter gradient overlay mostly for bottom edge fade */}
         <div style={{
           position: 'absolute',
