@@ -187,10 +187,14 @@ app.get('/api/users', async (req, res) => {
  */
 app.post('/api/users', async (req, res) => {
   const { email, password, name, discordUsername, role } = req.body;
-  if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
+  if (!db) return res.status(500).json({ success: false, message: 'Database system not connected.' });
+
+  if (!email || !password || password.length < 6) {
+    return res.status(400).json({ success: false, message: 'Invalid data. Password must be at least 6 characters.' });
+  }
 
   try {
-    // 1. Create in Firebase Auth using Admin SDK (No logout for current user)
+    // 1. Create in Firebase Auth (Silent)
     const userRecord = await admin.auth().createUser({
       email,
       password,
@@ -199,9 +203,9 @@ app.post('/api/users', async (req, res) => {
 
     const uid = userRecord.uid;
 
-    // 2. Create profile in Firestore
+    // 2. Create Firestore Profile
     const userData = {
-      name,
+      name: name || 'Unnamed Staff',
       email,
       discordUsername: discordUsername || '',
       role: role || 'admin',
@@ -209,12 +213,18 @@ app.post('/api/users', async (req, res) => {
     };
 
     await db.collection('Users').doc(uid).set(userData);
-    console.log(`✅ Formally added Admin: ${uid}`);
+    console.log(`✅ Administratively created user: ${uid} (${email})`);
 
     res.json({ success: true, user: { id: uid, ...userData } });
   } catch (error) {
-    console.error('❌ User creation failed:', error.message);
-    res.status(500).json({ success: false, message: error.message });
+    console.error('❌ Creation Error:', error.code, error.message);
+    
+    // Provide human-readable errors for common issues
+    let userMessage = 'Failed to create account.';
+    if (error.code === 'auth/email-already-exists') userMessage = 'This email is already registered.';
+    if (error.code === 'auth/invalid-email') userMessage = 'The email address is invalid.';
+    
+    res.status(400).json({ success: false, message: userMessage, originalError: error.message });
   }
 });
 
