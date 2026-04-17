@@ -228,8 +228,25 @@ const Apply = () => {
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
               {departments.map(dept => {
-                const existingApp = userApplications.find(app => app.type === dept.id);
+                let existingApp = userApplications.find(app => app.type === dept.id);
                 const isLocked = dept.locked;
+                
+                // Role-based status for existing members
+                const userRole = userData?.role?.toLowerCase() || '';
+                const isMember = ['civilian', 'police', 'pd', 'ems', 'mechanic'].includes(userRole);
+                
+                if (!existingApp) {
+                  // If user is already a member of any dept, they are approved for Civilian
+                  if (dept.id === 'civilian' && isMember) {
+                    existingApp = { status: 'approved' };
+                  }
+                  // Check for specific department roles
+                  if ((dept.id === 'police' && (userRole === 'police' || userRole === 'pd')) ||
+                      (dept.id === 'ems' && userRole === 'ems') ||
+                      (dept.id === 'mechanic' && userRole === 'mechanic')) {
+                    existingApp = { status: 'approved' };
+                  }
+                }
                 
                 return (
                   <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
