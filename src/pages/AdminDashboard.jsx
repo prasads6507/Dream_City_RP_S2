@@ -15,8 +15,13 @@ const AdminDashboard = () => {
   const [backendOnline, setBackendOnline] = useState(false);
   const [toast, setToast] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectedStaffIds, setSelectedStaffIds] = useState(new Set());
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '' });
+  
+  // Pagination State
+  const [staffPage, setStaffPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => { 
     if (activeTab === 'applications') fetchApps();
@@ -161,6 +166,66 @@ const AdminDashboard = () => {
     setLoading(false);
     setTimeout(() => setToast(null), 3000);
   };
+
+  const handleDeleteStaff = async (uid) => {
+    const { deleteAdminAccount } = await import('../services/authService');
+    if (!window.confirm('PERMANENT ACTION: This will delete the account from Login AND Database. They will NOT be able to login again. Proceed?')) return;
+    
+    setActionLoading(uid);
+    try {
+      await deleteAdminAccount(uid);
+      setUsers(prev => prev.filter(u => u.id !== uid));
+      setToast({ type: 'success', message: 'Staff member permanently deleted.' });
+    } catch (err) {
+      setToast({ type: 'error', message: err.message });
+    }
+    setActionLoading(null);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleBulkDeleteStaff = async () => {
+    const { deleteAdminAccount } = await import('../services/authService');
+    const ids = Array.from(selectedStaffIds);
+    if (!window.confirm(`PERMANENT ACTION: This will delete ${ids.length} staff accounts. They will NOT be able to login again. Proceed?`)) return;
+    
+    setLoading(true);
+    try {
+      for (const uid of ids) {
+        await deleteAdminAccount(uid);
+      }
+      setUsers(prev => prev.filter(u => !selectedStaffIds.has(u.id)));
+      setSelectedStaffIds(new Set());
+      setToast({ type: 'success', message: `${ids.length} staff members removed.` });
+    } catch (err) {
+      setToast({ type: 'error', message: 'Bulk delete partially failed.' });
+    }
+    setLoading(false);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const toggleSelectStaff = (id) => {
+    setSelectedStaffIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllStaff = () => {
+    const admins = users.filter(u => u.role === 'admin');
+    if (selectedStaffIds.size === admins.length && admins.length > 0) {
+      setSelectedStaffIds(new Set());
+    } else {
+      setSelectedStaffIds(new Set(admins.map(u => u.id)));
+    }
+  };
+
+  const filteredAdmins = users.filter(u => u.role === 'admin');
+  const indexOfLastStaff = staffPage * itemsPerPage;
+  const indexOfFirstStaff = indexOfLastStaff - itemsPerPage;
+  const currentAdmins = filteredAdmins.slice(indexOfFirstStaff, indexOfLastStaff);
+  const totalStaffPages = Math.ceil(filteredAdmins.length / itemsPerPage);
 
   const toggleSelectAll = () => {
     if (selectedIds.size === filtered.length && filtered.length > 0) {
@@ -461,7 +526,25 @@ const AdminDashboard = () => {
         ) : (
           /* Staff Management View */
           <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <button 
+                  onClick={toggleSelectAllStaff}
+                  className="sc-btn-outline"
+                  style={{ borderRadius: '12px', fontSize: '0.75rem', padding: '10px 16px' }}
+                >
+                  {selectedStaffIds.size === filteredAdmins.length && filteredAdmins.length > 0 ? 'Deselect All' : 'Select All Admins'}
+                </button>
+                {selectedStaffIds.size > 0 && (
+                  <button 
+                    onClick={handleBulkDeleteStaff}
+                    className="sc-btn-outline" 
+                    style={{ borderRadius: '12px', fontSize: '0.75rem', padding: '10px 16px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}
+                  >
+                    🗑️ Delete Selected ({selectedStaffIds.size})
+                  </button>
+                )}
+              </div>
               <button 
                 onClick={() => setShowAddAdmin(true)}
                 className="sc-btn" 
@@ -472,15 +555,29 @@ const AdminDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {users.map(user => (
-                <div key={user.id} className="sc-card" style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              {currentAdmins.length === 0 ? (
+                <div className="sc-card" style={{ padding: '60px', textAlign: 'center', color: '#64748b', opacity: 0.6 }}>
+                  No administrators found.
+                </div>
+              ) : currentAdmins.map(user => (
+                <div key={user.id} className="sc-card" style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: selectedStaffIds.has(user.id) ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.02)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div 
+                      onClick={() => toggleSelectStaff(user.id)}
+                      style={{ 
+                        width: '20px', height: '20px', borderRadius: '6px', border: '2px solid rgba(255,255,255,0.1)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', background: selectedStaffIds.has(user.id) ? '#ef4444' : 'transparent',
+                        borderColor: selectedStaffIds.has(user.id) ? '#ef4444' : 'rgba(255,255,255,0.1)'
+                      }}
+                    >
+                      {selectedStaffIds.has(user.id) && <span style={{ color: '#fff', fontSize: '0.7rem' }}>✓</span>}
+                    </div>
                     <div style={{
                       width: '48px', height: '48px', borderRadius: '14px',
-                      background: user.role === 'admin' ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.05)', 
-                      border: user.role === 'admin' ? '1px solid #A78BFA' : '1px solid rgba(255,255,255,0.1)',
+                      background: 'rgba(167,139,250,0.1)', 
+                      border: '1px solid #A78BFA',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: user.role === 'admin' ? '#A78BFA' : '#64748b',
+                      fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#A78BFA',
                     }}>
                       {user.name?.charAt(0) || '?'}
                     </div>
@@ -497,35 +594,65 @@ const AdminDashboard = () => {
                     <span style={{
                       padding: '4px 12px', borderRadius: '6px', fontSize: '0.6rem',
                       fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
-                      background: user.role === 'admin' ? 'rgba(167, 139, 250, 0.2)' : 'rgba(255,255,255,0.05)',
-                      color: user.role === 'admin' ? '#A78BFA' : '#64748b',
+                      background: 'rgba(167,139,250,0.2)',
+                      color: '#A78BFA',
                     }}>
                       {user.role}
                     </span>
                     
-                    {user.role !== 'admin' ? (
-                      <button 
-                        onClick={() => handleRoleUpdate(user.id, 'admin')}
-                        disabled={actionLoading === user.id}
-                        className="sc-btn"
-                        style={{ padding: '6px 16px', fontSize: '0.65rem' }}
-                      >
-                        Make Admin
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => handleRoleUpdate(user.id, 'user')}
-                        disabled={actionLoading === user.id}
-                        className="sc-btn-outline"
-                        style={{ padding: '6px 16px', fontSize: '0.65rem', color: '#ef4444', borderColor: '#ef4444' }}
-                      >
-                        Revoke Access
-                      </button>
-                    )}
+                    <button 
+                      onClick={() => handleDeleteStaff(user.id)}
+                      disabled={actionLoading === user.id}
+                      className="sc-btn-outline"
+                      style={{ padding: '8px', color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)' }}
+                      title="Delete Permanently"
+                    >
+                      {actionLoading === user.id ? '...' : '🗑️'}
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Staff Pagination */}
+            {totalStaffPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '40px' }}>
+                <button 
+                  disabled={staffPage === 1}
+                  onClick={() => setStaffPage(p => p - 1)}
+                  className="sc-btn-outline"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', opacity: staffPage === 1 ? 0.3 : 1 }}
+                >
+                  ← Previous
+                </button>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {Array.from({ length: totalStaffPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setStaffPage(i + 1)}
+                      style={{
+                        width: '32px', height: '32px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)',
+                        background: staffPage === i + 1 ? '#A78BFA' : 'rgba(255,255,255,0.03)',
+                        color: staffPage === i + 1 ? '#000' : '#fff', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer'
+                      }}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <button 
+                  disabled={staffPage === totalStaffPages}
+                  onClick={() => setStaffPage(p => p + 1)}
+                  className="sc-btn-outline"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', opacity: staffPage === totalStaffPages ? 0.3 : 1 }}
+                >
+                  Next →
+                </button>
+                <span style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '12px' }}>
+                  Showing {indexOfFirstStaff + 1}-{Math.min(indexOfLastStaff, filteredAdmins.length)} of {filteredAdmins.length}
+                </span>
+              </div>
+            )}
 
             {/* Add Admin Modal */}
             {showAddAdmin && (

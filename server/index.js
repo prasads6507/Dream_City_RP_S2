@@ -132,6 +132,32 @@ app.get('/api/check-duplicate/:discordId', async (req, res) => {
   }
 });
 
+/**
+ * Delete User (Auth + Firestore)
+ * DELETE /api/users/:uid
+ * Security Note: In a live app, you would verify the requester's admin token here.
+ */
+app.delete('/api/users/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    // 1. Delete from Firebase Auth
+    await admin.auth().deleteUser(uid);
+    console.log(`👤 Deleted Auth User: ${uid}`);
+
+    // 2. Delete from Firestore
+    if (db) {
+      await db.collection('Users').doc(uid).delete();
+      console.log(`📄 Deleted Firestore Doc: ${uid}`);
+    }
+
+    res.json({ success: true, message: 'User permanently deleted from all systems.' });
+  } catch (error) {
+    console.error('❌ Deletion failed:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

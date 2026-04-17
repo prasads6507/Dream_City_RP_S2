@@ -152,3 +152,21 @@ export const updateUserRole = async (uid, role) => {
   const userRef = doc(db, 'Users', uid);
   await updateDoc(userRef, { role });
 };
+
+/**
+ * Delete a user account permanently (Auth + Doc)
+ * Calls the backend API because client-side Firebase cannot delete other users' auth accounts.
+ */
+export const deleteAdminAccount = async (uid) => {
+  const axios = (await import('axios')).default;
+  const rawUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+  const BACKEND_URL = rawUrl.replace(/\/$/, '');
+  
+  try {
+    const res = await axios.delete(`${BACKEND_URL}/api/users/${uid}`);
+    return res.data;
+  } catch (error) {
+    console.error('Delete User Failed:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.message || 'Failed to delete user account');
+  }
+};

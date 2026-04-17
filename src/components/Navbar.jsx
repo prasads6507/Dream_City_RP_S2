@@ -133,8 +133,12 @@ const Navbar = () => {
           {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {userData?.role === 'admin' && (
-                <Link to="/admin" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Admin
+                <Link to="/admin" className="sc-btn" style={{ 
+                  padding: '8px 16px', fontSize: '0.7rem', textTransform: 'uppercase', 
+                  letterSpacing: '1px', borderRadius: '8px', background: 'rgba(167, 139, 250, 0.15)',
+                  border: '1px solid rgba(167, 139, 250, 0.3)', color: '#A78BFA'
+                }}>
+                  Dashboard
                 </Link>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 12px 4px 6px', background: 'rgba(255,255,255,0.03)', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.06)' }}>
