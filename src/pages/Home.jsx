@@ -1,6 +1,17 @@
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef(null);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(videoRef.current.muted);
+    }
+  };
+
   const galleryImages = [
     { src: '/images/gallery-1.png', label: 'The Crew' },
     { src: '/images/gallery-2.png', label: 'In Pursuit' },
@@ -22,25 +33,40 @@ const Home = () => {
         alignItems: 'center',
         overflow: 'hidden',
       }}>
-        {/* Background Image */}
+        {/* Background Video */}
+        <video 
+          ref={videoRef}
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            filter: 'brightness(0.9) saturate(1.1)', // Maximally clear while fitting tone
+          }}
+        >
+          <source src="/background.mp4" type="video/mp4" />
+        </video>
+        {/* Lighter gradient overlay mostly for bottom edge fade */}
         <div style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'url(/images/hero-bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.25) saturate(1.3)',
-        }} />
-        {/* Dark gradient overlay */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 50%, #000000 100%)',
+          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.9) 100%)',
         }} />
 
-        <div className="sc-container" style={{ position: 'relative', zIndex: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center', padding: '140px 24px 100px' }}>
-          {/* Left: Text */}
-          <div>
+        {/* Text backdrop for readability */}
+        <div className="sc-container" style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '40px', alignItems: 'center', textAlign: 'center', padding: '140px 24px 100px' }}>
+          <div style={{
+            position: 'absolute', top: '100px', width: '80%', height: '300px',
+            background: 'radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 70%)',
+            pointerEvents: 'none', zIndex: -1
+          }}></div>
+          {/* Top: Text */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {/* Badge */}
             <div style={{
               display: 'inline-flex',
@@ -71,6 +97,7 @@ const Home = () => {
               lineHeight: 1.2,
               marginBottom: '24px',
               color: '#fff',
+              textShadow: '0 4px 40px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.6)',
               whiteSpace: 'nowrap',
               animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both',
             }}>
@@ -83,6 +110,7 @@ const Home = () => {
               lineHeight: 1.1,
               marginBottom: '24px',
               color: '#A78BFA',
+              textShadow: '0 4px 40px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.6)',
               animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both',
             }}>
               Season 2
@@ -92,7 +120,7 @@ const Home = () => {
 
             {/* Buttons */}
             <div style={{
-              display: 'flex', gap: '16px', flexWrap: 'wrap',
+              display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
               animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s both',
             }}>
               <a href="https://discord.gg/GdKgR2qTgr" target="_blank" rel="noopener noreferrer" className="sc-btn">
@@ -101,62 +129,59 @@ const Home = () => {
               <Link to="/apply" className="sc-btn-outline">
                 Apply Now
               </Link>
+              <button 
+                onClick={toggleMute}
+                style={{
+                  background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '50%', width: '48px', height: '48px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', transition: 'all 0.3s ease',
+                  marginLeft: '10px'
+                }}
+                title={isMuted ? "Unmute Video" : "Mute Video"}
+              >
+                {isMuted ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Right: Featured Video/Image Card */}
-          <div style={{ animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both' }}>
-            {/* Main video card */}
-            <div style={{
-              borderRadius: '20px',
-              overflow: 'hidden',
-              border: '1px solid rgba(167, 139, 250, 0.15)',
-              boxShadow: '0 0 60px rgba(167, 139, 250, 0.08)',
-              position: 'relative',
-              aspectRatio: '16/10',
-            }}>
-              <img src="/images/gallery-1.png" alt="Dream City Roleplay" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <div style={{
-                  width: '64px', height: '64px', borderRadius: '50%',
-                  background: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 0 30px rgba(167, 139, 250, 0.6)',
+          {/* Bottom: Trailer Previews / Gallery Highlights */}
+          <div style={{ animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both', width: '100%', marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '24px', overflowX: 'auto', padding: '10px', alignItems: 'center' }}>
+              {[1, 2, 3].map(num => (
+                <div key={num} style={{
+                  width: '240px',
+                  aspectRatio: '16/9',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  border: '1px solid rgba(167, 139, 250, 0.1)',
+                  boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
+                  flexShrink: 0,
                   cursor: 'pointer',
-                  transition: 'transform 0.3s ease',
-                }}>
-                  <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '18px solid #000', marginLeft: '4px' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Smaller preview cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
-              <div style={{
-                borderRadius: '16px', overflow: 'hidden', position: 'relative', aspectRatio: '16/9',
-                border: '1px solid rgba(167, 139, 250, 0.08)',
-              }}>
-                <img src="/images/gallery-2.png" alt="Preview 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(167,139,250,0.5)' }}>
-                    <div style={{ width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '10px solid #000', marginLeft: '2px' }} />
+                  transition: 'transform 0.3s ease, border-color 0.3s ease',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.borderColor = '#A78BFA';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.1)';
+                }}
+                >
+                  <img src={`/images/gallery-${num}.png`} alt={`Preview ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(167,139,250,0.5)' }}>
+                      <div style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '12px solid #000', marginLeft: '3px' }} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div style={{
-                borderRadius: '16px', overflow: 'hidden', position: 'relative', aspectRatio: '16/9',
-                border: '1px solid rgba(167, 139, 250, 0.08)',
-              }}>
-                <img src="/images/gallery-3.png" alt="Preview 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(167,139,250,0.5)' }}>
-                    <div style={{ width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '10px solid #000', marginLeft: '2px' }} />
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
