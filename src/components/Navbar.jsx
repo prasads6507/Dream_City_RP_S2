@@ -213,36 +213,51 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, top: '76px',
-          background: 'rgba(0, 0, 0, 0.97)',
-          backdropFilter: 'blur(20px)',
-          padding: '32px 24px',
-          zIndex: 90,
-          animation: 'fade-in 0.3s ease-out',
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {navLinks.map(link => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: 'block', padding: '16px 0',
-                  fontSize: '1.5rem', fontWeight: 700,
-                  color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.6)',
-                  textDecoration: 'none',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <div 
+          onClick={() => setMobileMenuOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, top: '76px',
+            background: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 89,
+            animation: 'fade-in 0.3s ease-out',
+          }}
+        />
       )}
+
+      {/* Mobile Menu Drawer */}
+      <div style={{
+        position: 'fixed', top: '76px', right: 0, bottom: 0,
+        width: '280px',
+        background: 'rgba(10, 10, 12, 0.98)',
+        borderLeft: '1px solid rgba(167, 139, 250, 0.1)',
+        padding: '32px 24px',
+        zIndex: 90,
+        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
+        boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {navLinks.map(link => (
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                display: 'block', padding: '16px 0',
+                fontSize: '1.2rem', fontWeight: 700,
+                color: isActive(link.path) ? '#A78BFA' : 'rgba(255,255,255,0.6)',
+                textDecoration: 'none',
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {/* Responsive CSS for mobile toggle */}
       <style>{`
