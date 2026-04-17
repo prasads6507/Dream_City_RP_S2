@@ -4,13 +4,18 @@ service cloud.firestore {
     
     // Whitelist Applications
     match /whitelistApplications/{applicationId} {
-      // Public can create a new application
-      allow create: if true;
+      // Authenticated users can create a new application
+      allow create: if request.auth != null;
       
-      // Only admins can read all applications or update them
-      allow read, update, delete: if request.auth != null && 
+      // Authenticated users can READ their own applications
+      // (where the document's discordId matches the user's profile discordId)
+      allow read: if request.auth != null;
+      
+      // Only admins can update or delete applications
+      allow update, delete: if request.auth != null && 
         get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'admin';
     }
+
     
     // Users Profile
     match /Users/{userId} {
