@@ -238,8 +238,6 @@ const Apply = () => {
                 // Role-based status for existing members
                 const userRole = userData?.role?.toLowerCase() || '';
                 const isMember = ['civilian', 'police', 'pd', 'ems', 'mechanic'].includes(userRole);
-                const isCivilianApproved = userApplications.some(app => app.type === 'civilian' && app.status === 'approved') || isMember;
-
                 if (!existingApp) {
                   // If user is already a member of any dept, they are approved for Civilian
                   if (dept.id === 'civilian' && isMember) {
@@ -252,9 +250,6 @@ const Apply = () => {
                     existingApp = { status: 'approved' };
                   }
                 }
-
-                // PREREQUISITE: Only let them apply for specialty depts if Civilian is Approved
-                const canApply = dept.id === 'civilian' || isCivilianApproved;
                 
                 return (
                   <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -305,18 +300,6 @@ const Apply = () => {
                           {existingApp.status}
                         </span>
                       </div>
-                    ) : !canApply ? (
-                      <button 
-                        className="sc-btn-outline" 
-                        disabled 
-                        style={{ 
-                          marginTop: 'auto', width: '100%', borderRadius: '8px', 
-                          opacity: 0.5, cursor: 'not-allowed',
-                          fontSize: '0.75rem', fontWeight: 800
-                        }}
-                      >
-                        🔏 Allowlist Required
-                      </button>
                     ) : (
                       <button 
                         onClick={() => startApplication(dept)} 
