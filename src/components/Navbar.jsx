@@ -64,7 +64,7 @@ const Navbar = () => {
             onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.target.style.transform = 'scale(1)'}
           />
-          <span style={{
+          <span className="logo-text" style={{
             fontFamily: '"Orbitron", sans-serif',
             fontWeight: 800,
             fontSize: '1.4rem',
@@ -178,7 +178,7 @@ const Navbar = () => {
           {/* Connect Button */}
           <a
             href="fivem://connect/dreamcityrp.com"
-            className="sc-btn"
+            className="sc-btn nav-connect-btn"
             style={{ padding: '10px 24px', fontSize: '0.75rem' }}
           >
             <span style={{
@@ -249,6 +249,10 @@ const Navbar = () => {
         @media (max-width: 900px) {
           .desktop-nav { display: none !important; }
           .mobile-toggle { display: block !important; }
+        }
+        @media (max-width: 500px) {
+          .logo-text { display: none !important; }
+          .nav-connect-btn { padding: 8px 16px !important; font-size: 0.65rem !important; }
         }
       `}</style>
     </nav>

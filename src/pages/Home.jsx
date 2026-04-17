@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -11,6 +11,17 @@ const Home = () => {
       setIsMuted(videoRef.current.muted);
     }
   };
+
+  // Force autoplay on iOS
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(error => {
+        console.warn("Autoplay was prevented by browser:", error);
+      });
+    }
+  }, []);
 
   const galleryImages = [
     { src: '/images/gallery-1.png', label: 'The Crew' },
@@ -40,6 +51,8 @@ const Home = () => {
           loop 
           muted 
           playsInline
+          webkit-playsinline="true"
+          poster="/images/hero-bg.png"
           style={{
             position: 'absolute',
             inset: 0,
@@ -120,41 +133,47 @@ const Home = () => {
 
             {/* Buttons */}
             <div style={{
-              display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+              display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
               animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s both',
+              width: '100%', maxWidth: '500px', margin: '0 auto'
             }}>
-              <a href="https://discord.gg/GdKgR2qTgr" target="_blank" rel="noopener noreferrer" className="sc-btn">
+              <a href="https://discord.gg/GdKgR2qTgr" target="_blank" rel="noopener noreferrer" className="sc-btn" style={{ flex: '1 1 200px' }}>
                 Join Discord
               </a>
-              <Link to="/apply" className="sc-btn-outline">
-                Apply Now
-              </Link>
-              <button 
-                onClick={toggleMute}
-                style={{
-                  background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '50%', width: '48px', height: '48px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', transition: 'all 0.3s ease',
-                  marginLeft: '10px'
-                }}
-                title={isMuted ? "Unmute Video" : "Mute Video"}
-              >
-                {isMuted ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                )}
-              </button>
+              <div style={{ display: 'flex', gap: '12px', flex: '1 1 250px', justifyContent: 'center' }}>
+                <Link to="/apply" className="sc-btn-outline" style={{ flex: '1' }}>
+                  Apply Now
+                </Link>
+                <button 
+                  onClick={toggleMute}
+                  style={{
+                    background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '50%', width: '48px', height: '48px', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'all 0.3s ease'
+                  }}
+                  title={isMuted ? "Unmute Video" : "Mute Video"}
+                >
+                  {isMuted ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Bottom: Trailer Previews / Gallery Highlights */}
-          <div style={{ animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both', width: '100%', marginTop: '40px', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', gap: '24px', overflowX: 'auto', padding: '10px', alignItems: 'center' }}>
+          <div style={{ animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both', width: '100%', marginTop: '40px' }}>
+            <div style={{ 
+              display: 'flex', gap: '16px', overflowX: 'auto', padding: '10px 20px', 
+              alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+              maxWidth: '100vw', scrollSnapType: 'x mandatory' 
+            }}>
               {[1, 2, 3].map(num => (
                 <div key={num} style={{
-                  width: '240px',
+                  width: 'min(240px, 85vw)', /* Makes it scale properly on small mobile screens */
                   aspectRatio: '16/9',
                   borderRadius: '16px',
                   overflow: 'hidden',
