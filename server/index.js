@@ -17,10 +17,63 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'online', 
-    version: '1.2.0-silent-auth', // Version tracking to verify deployment
+    version: '1.2.1-master-fix', // Latest version identifier
     bot: !!process.env.DISCORD_BOT_TOKEN,
     db: !!db
   });
+});
+
+/**
+ * Filtered Staff Feed
+ * GET /api/users
+ */
+app.get('/api/users', async (req, res) => {
+  if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
+  try {
+    const snapshot = await db.collection('Users').where('role', '==', 'admin').get();
+    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * Silent User Creation (Backend only)
+ * POST /api/users
+ */
+app.post('/api/users', async (req, res) => {
+  const { email, password, name, discordUsername, role } = req.body;
+  console.log(`📡 Request to create admin: ${email}`);
+  
+  if (!db) return res.status(500).json({ success: false, message: 'Database system not connected.' });
+
+  if (!email || !password || password.length < 6) {
+    return res.status(400).json({ success: false, message: 'Invalid data. Password must be at least 6 characters.' });
+  }
+
+  try {
+    const userRecord = await admin.auth().createUser({ email, password, displayName: name });
+    const uid = userRecord.uid;
+
+    const userData = {
+      name: name || 'Unnamed Staff',
+      email,
+      discordUsername: discordUsername || '',
+      role: role || 'admin',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await db.collection('Users').doc(uid).set(userData);
+    console.log(`✅ Administratively created user: ${uid} (${email})`);
+    res.json({ success: true, user: { id: uid, ...userData } });
+  } catch (error) {
+    console.error('❌ Creation Error:', error.code, error.message);
+    let userMessage = 'Failed to create account.';
+    if (error.code === 'auth/email-already-exists') userMessage = 'This email is already registered.';
+    if (error.code === 'auth/invalid-email') userMessage = 'The email address is invalid.';
+    res.status(400).json({ success: false, message: userMessage, originalError: error.message });
+  }
 });
 
 // Initialize Firebase Admin
@@ -167,65 +220,6 @@ app.delete('/api/users/:uid', async (req, res) => {
   }
 });
 
-/**
- * Filtered Staff Feed
- * GET /api/users
- */
-app.get('/api/users', async (req, res) => {
-  if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
-  try {
-    const snapshot = await db.collection('Users').where('role', '==', 'admin').get();
-    const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json({ success: true, users });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-/**
- * Silent User Creation (Backend only)
- * POST /api/users
- */
-app.post('/api/users', async (req, res) => {
-  const { email, password, name, discordUsername, role } = req.body;
-  if (!db) return res.status(500).json({ success: false, message: 'Database system not connected.' });
-
-  if (!email || !password || password.length < 6) {
-    return res.status(400).json({ success: false, message: 'Invalid data. Password must be at least 6 characters.' });
-  }
-
-  try {
-    // 1. Create in Firebase Auth (Silent)
-    const userRecord = await admin.auth().createUser({
-      email,
-      password,
-      displayName: name,
-    });
-
-    const uid = userRecord.uid;
-
-    // 2. Create Firestore Profile
-    const userData = {
-      name: name || 'Unnamed Staff',
-      email,
-      discordUsername: discordUsername || '',
-      role: role || 'admin',
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    await db.collection('Users').doc(uid).set(userData);
-    console.log(`✅ Administratively created user: ${uid} (${email})`);
-
-    res.json({ success: true, user: { id: uid, ...userData } });
-  } catch (error) {
-    console.error('❌ Creation Error:', error.code, error.message);
-    
-    // Provide human-readable errors for common issues
-    let userMessage = 'Failed to create account.';
-    if (error.code === 'auth/email-already-exists') userMessage = 'This email is already registered.';
-    if (error.code === 'auth/invalid-email') userMessage = 'The email address is invalid.';
-    
-    res.status(400).json({ success: false, message: userMessage, originalError: error.message });
   }
 });
 
