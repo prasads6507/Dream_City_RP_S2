@@ -113,9 +113,7 @@ const Apply = () => {
     setError('');
     try {
       await signInWithDiscord();
-      // Auto-advance to Civilian app for better UX
-      setAppType('civilian');
-      setView('form');
+      // Stay on the selection view so the user can see their application statuses
     } catch (err) {
       setError('Login failed. Please disable Adblockers and ensure cookies are enabled.');
     } finally {
@@ -166,8 +164,17 @@ const Apply = () => {
       // ONLY reject if there is a Pending or Approved app
       const isDuplicate = apps.some(app => app.type === appType && app.status !== 'rejected');
       
-      if (isDuplicate) {
-        throw new Error(`You have already submitted a ${appType} application.`);
+      const userRole = userData?.role?.toLowerCase() || '';
+      const isMember = ['civilian', 'police', 'pd', 'ems', 'mechanic'].includes(userRole);
+      let isRoleDuplicate = false;
+
+      if (appType === 'civilian' && isMember) isRoleDuplicate = true;
+      if (appType === 'police' && (userRole === 'police' || userRole === 'pd')) isRoleDuplicate = true;
+      if (appType === 'ems' && userRole === 'ems') isRoleDuplicate = true;
+      if (appType === 'mechanic' && userRole === 'mechanic') isRoleDuplicate = true;
+      
+      if (isDuplicate || isRoleDuplicate) {
+        throw new Error(`You have already submitted a ${appType} application or already have this role.`);
       }
 
       await submitApplication(formData, appType, currentUser.uid);
