@@ -24,13 +24,40 @@ app.get('/api/health', (req, res) => {
 
 // Initialize Firebase Admin
 try {
-  const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './firebase-admin.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-  console.log('🔥 Firebase Admin initialized');
+  const fs = require('fs');
+  const path = require('path');
+  
+  // Try several potential paths for the secret file
+  const potentialPaths = [
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+    './firebase-admin.json',
+    '../firebase-admin.json',
+    '/app/firebase-admin.json',
+    path.join(__dirname, 'firebase-admin.json'),
+    path.join(__dirname, '..', 'firebase-admin.json')
+  ].filter(Boolean);
+
+  let serviceAccount = null;
+  let foundPath = null;
+
+  for (const p of potentialPaths) {
+    if (fs.existsSync(p)) {
+      serviceAccount = require(path.resolve(p));
+      foundPath = p;
+      break;
+    }
+  }
+
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log(`🔥 Firebase Admin initialized using: ${foundPath}`);
+  } else {
+    throw new Error('No valid firebase-admin.json found in any potential path.');
+  }
 } catch (error) {
-  console.warn('⚠️ Firebase Admin SDK not configured correctly. Check firebase-admin.json');
+  console.warn('⚠️ Firebase Admin SDK not configured correctly. ' + error.message);
 }
 
 const db = admin.apps.length > 0 ? admin.firestore() : null;
