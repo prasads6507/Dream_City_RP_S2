@@ -114,6 +114,9 @@ try {
   console.warn('⚠️ Firebase Admin SDK not configured correctly. ' + error.message);
 }
 
+const db = admin.apps.length > 0 ? admin.firestore() : null;
+if (!db) console.warn('❗ Firestore features are disabled (Admin SDK not initialized)');
+
 // --- API ROUTES ---
 
 /**
