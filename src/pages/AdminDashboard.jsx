@@ -31,6 +31,9 @@ const AdminDashboard = () => {
   const [appPage, setAppPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Subscribe to Application Locks
   useEffect(() => {
     const unsubscribe = subscribeToAppSettings((settings) => {
@@ -46,7 +49,8 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     setAppPage(1);
-  }, [filter, typeFilter]);
+    setStaffPage(1);
+  }, [filter, typeFilter, searchQuery]);
 
   const fetchApps = async () => {
     setLoading(true);
@@ -246,7 +250,15 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredAdmins = users.filter(u => u.role === 'admin');
+  const filteredAdmins = users.filter(u => {
+    const isAdmin = u.role === 'admin';
+    const searchLower = searchQuery.toLowerCase();
+    const searchName = u.name?.toLowerCase() || '';
+    const searchEmail = u.email?.toLowerCase() || '';
+    const searchDiscord = u.discordUsername?.toLowerCase() || '';
+    const matchesSearch = !searchQuery || searchName.includes(searchLower) || searchEmail.includes(searchLower) || searchDiscord.includes(searchLower);
+    return isAdmin && matchesSearch;
+  });
   const indexOfLastStaff = staffPage * itemsPerPage;
   const indexOfFirstStaff = indexOfLastStaff - itemsPerPage;
   const currentAdmins = filteredAdmins.slice(indexOfFirstStaff, indexOfLastStaff);
@@ -263,7 +275,13 @@ const AdminDashboard = () => {
   const filtered = applications.filter(a => {
     const matchesStatus = filter === 'all' || a.status === filter;
     const matchesType = typeFilter === 'all' || a.type === typeFilter;
-    return matchesStatus && matchesType;
+    const searchLower = searchQuery.toLowerCase();
+    const searchName = a.discordName?.toLowerCase() || '';
+    const searchFullName = a.fullName?.toLowerCase() || '';
+    const searchId = a.discordId ? String(a.discordId) : '';
+    const matchesSearch = !searchQuery || searchName.includes(searchLower) || searchFullName.includes(searchLower) || searchId.includes(searchLower);
+    
+    return matchesStatus && matchesType && matchesSearch;
   });
 
   const indexOfLastApp = appPage * itemsPerPage;
@@ -427,6 +445,22 @@ const AdminDashboard = () => {
                   Bot: {backendOnline ? 'Online' : 'Offline'}
                 </span>
               </div>
+
+              <div style={{ position: 'relative', marginRight: '8px' }}>
+                <input 
+                  type="text"
+                  placeholder={activeTab === 'applications' ? "Search Name or ID..." : "Search Admin..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(167,139,250,0.1)',
+                    borderRadius: '10px', color: '#fff', padding: '8px 12px 8px 32px',
+                    fontSize: '0.75rem', fontWeight: 600, outline: 'none', width: '200px'
+                  }}
+                />
+                <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.8rem' }}>🔍</span>
+              </div>
+
               <select 
                 value={typeFilter} 
                 onChange={(e) => setTypeFilter(e.target.value)}
