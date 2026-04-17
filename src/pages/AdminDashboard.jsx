@@ -39,10 +39,15 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+        let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+        // Clean trailing slash
+        baseUrl = baseUrl.replace(/\/$/, '');
+        
+        console.log('📡 Checking Backend Health at:', `${baseUrl}/api/health`);
         const res = await axios.get(`${baseUrl}/api/health`);
         setBackendOnline(res.data.status === 'online');
       } catch (err) {
+        console.warn('❌ Health check failed:', err.message);
         setBackendOnline(false);
       }
     };

@@ -16,7 +16,8 @@ import { db } from '../firebase/config';
 import axios from 'axios';
 
 const COLLECTION_NAME = 'whitelistApplications';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000'; 
+const rawUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+const BACKEND_URL = rawUrl.replace(/\/$/, '');
 
 
 /**
