@@ -218,7 +218,8 @@ const Navbar = () => {
         <div 
           onClick={() => setMobileMenuOpen(false)}
           style={{
-            position: 'fixed', inset: 0, top: '76px',
+            position: 'absolute', top: '76px', left: 0, width: '100vw',
+            height: 'calc(100vh - 76px)',
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(4px)',
             zIndex: 89,
@@ -229,8 +230,9 @@ const Navbar = () => {
 
       {/* Mobile Menu Drawer */}
       <div style={{
-        position: 'fixed', top: '76px', right: 0, bottom: 0,
-        width: '100%',
+        position: 'absolute', top: '76px', right: 0, 
+        height: 'calc(100vh - 76px)',
+        width: '100vw',
         background: 'rgba(5, 5, 8, 0.95)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
