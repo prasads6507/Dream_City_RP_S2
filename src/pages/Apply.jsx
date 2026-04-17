@@ -53,7 +53,8 @@ const Apply = () => {
   }, [userData]);
 
   // Determine standard role access fallback just in case, but global lock takes priority
-  const hasBaseAccess = userData?.role === 'member' || userData?.role === 'admin';
+  // Wait, user requested absolute admin control: if unlocked in admin, it's unlocked for everyone.
+  // So we completely rely on appSettings.
 
   const departments = [
     { 
@@ -72,7 +73,7 @@ const Apply = () => {
       icon: '🚔', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: appSettings.policeLocked || !hasBaseAccess
+      locked: appSettings.policeLocked
     },
     { 
       id: 'ems', 
@@ -81,7 +82,7 @@ const Apply = () => {
       icon: '🚑', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: appSettings.emsLocked || !hasBaseAccess
+      locked: appSettings.emsLocked
     },
     { 
       id: 'mechanic', 
@@ -90,7 +91,7 @@ const Apply = () => {
       icon: '🔧', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: appSettings.mechanicLocked || !hasBaseAccess
+      locked: appSettings.mechanicLocked
     },
   ];
 
