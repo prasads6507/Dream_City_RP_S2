@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
 import { getAllApplications, processApplicationDecision, deleteApplications } from '../services/applicationService';
+import { getAllUsers, updateUserRole, signUp } from '../services/authService';
 import axios from 'axios';
 
 const AdminDashboard = () => {
+  const [activeTab, setActiveTab] = useState('applications'); // 'applications' or 'staff'
   const [applications, setApplications] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -12,11 +14,23 @@ const AdminDashboard = () => {
   const [backendOnline, setBackendOnline] = useState(false);
   const [toast, setToast] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '' });
 
-  useEffect(() => { fetchApps(); }, []);
+  useEffect(() => { 
+    if (activeTab === 'applications') fetchApps();
+    else fetchUsers();
+  }, [activeTab]);
 
   const fetchApps = async () => {
+    setLoading(true);
     try { setApplications(await getAllApplications()); } catch (err) { console.error(err); }
+    setLoading(false);
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try { setUsers(await getAllUsers()); } catch (err) { console.error(err); }
     setLoading(false);
   };
 
@@ -107,6 +121,41 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleRoleUpdate = async (uid, newRole) => {
+    setActionLoading(uid);
+    try {
+      await updateUserRole(uid, newRole);
+      setUsers(prev => prev.map(u => u.id === uid ? { ...u, role: newRole } : u));
+      setToast({ type: 'success', message: `User role updated to ${newRole}` });
+      setTimeout(() => setToast(null), 3000);
+    } catch (err) {
+      setToast({ type: 'error', message: 'Failed to update role.' });
+      setTimeout(() => setToast(null), 3000);
+    }
+    setActionLoading(null);
+  };
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { email, password, name, discordUsername } = newAdmin;
+      // We use the existing signUp but we need a way to force Admin.
+      // Since existing signUp sets role: 'user', we call updateUserRole immediately after.
+      const userCred = await signUp(email, password, name, discordUsername);
+      await updateUserRole(userCred.user.uid, 'admin');
+      
+      setToast({ type: 'success', message: 'New Admin account created successfully!' });
+      setShowAddAdmin(false);
+      setNewAdmin({ email: '', password: '', name: '', discordUsername: '' });
+      fetchUsers();
+    } catch (err) {
+      setToast({ type: 'error', message: err.message || 'Failed to create admin.' });
+    }
+    setLoading(false);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const toggleSelectAll = () => {
     if (selectedIds.size === filtered.length && filtered.length > 0) {
       setSelectedIds(new Set());
@@ -177,13 +226,43 @@ const AdminDashboard = () => {
 
 
       <div className="sc-container">
+        {/* Main Tab Switcher */}
+        <div style={{ display: 'flex', gap: '32px', marginBottom: '40px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <button 
+            onClick={() => setActiveTab('applications')}
+            style={{ 
+              padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
+              color: activeTab === 'applications' ? '#A78BFA' : '#64748b',
+              fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '2px',
+              borderBottom: activeTab === 'applications' ? '2px solid #A78BFA' : '2px solid transparent',
+              transition: 'all 0.3s'
+            }}
+          >
+            Applications
+          </button>
+          <button 
+            onClick={() => setActiveTab('staff')}
+            style={{ 
+              padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
+              color: activeTab === 'staff' ? '#A78BFA' : '#64748b',
+              fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '2px',
+              borderBottom: activeTab === 'staff' ? '2px solid #A78BFA' : '2px solid transparent',
+              transition: 'all 0.3s'
+            }}
+          >
+            Staff Management
+          </button>
+        </div>
+
         {/* Header & Filters */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px', marginBottom: '40px' }}>
           <div>
             <h1 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px', color: '#A78BFA' }}>
-              Recruitment <span style={{ color: '#fff' }}>Desk</span>
+              {activeTab === 'applications' ? 'Recruitment' : 'Staff'} <span style={{ color: '#fff' }}>Desk</span>
             </h1>
-            <p style={{ color: '#94a3b8' }}>Review and manage portal applications</p>
+            <p style={{ color: '#94a3b8' }}>
+              {activeTab === 'applications' ? 'Review and manage portal applications' : 'Manage administrative access and team members'}
+            </p>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
@@ -245,134 +324,243 @@ const AdminDashboard = () => {
         </div>
 
         {/* Applications List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {filtered.length === 0 ? (
-            <div className="sc-card" style={{ padding: '80px', textAlign: 'center', opacity: 0.3 }}>
-              <p style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '2px' }}>Queue is empty</p>
-            </div>
-          ) : filtered.map(app => (
-            <div key={app.id} className="sc-card" style={{ border: selectedIds.has(app.id) ? '1px solid #A78BFA' : expandedId === app.id ? '1px solid rgba(167,139,250,0.3)' : '1px solid rgba(255,255,255,0.02)' }}>
-              <div style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  {/* Checkbox */}
-                  <div 
-                    onClick={() => toggleSelect(app.id)}
-                    style={{ 
-                      width: '20px', height: '20px', borderRadius: '6px', 
-                      border: '2px solid rgba(167,139,250,0.3)', cursor: 'pointer',
-                      background: selectedIds.has(app.id) ? '#A78BFA' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-                    }}
-                  >
-                    {selectedIds.has(app.id) && <span style={{ color: '#000', fontSize: '12px', fontWeight: 900 }}>✓</span>}
+        {activeTab === 'applications' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filtered.length === 0 ? (
+              <div className="sc-card" style={{ padding: '80px', textAlign: 'center', opacity: 0.3 }}>
+                <p style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, letterSpacing: '2px' }}>Queue is empty</p>
+              </div>
+            ) : filtered.map(app => (
+              <div key={app.id} className="sc-card" style={{ border: selectedIds.has(app.id) ? '1px solid #A78BFA' : expandedId === app.id ? '1px solid rgba(167,139,250,0.3)' : '1px solid rgba(255,255,255,0.02)' }}>
+                <div style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div 
+                      onClick={() => toggleSelect(app.id)}
+                      style={{ 
+                        width: '20px', height: '20px', borderRadius: '6px', 
+                        border: '2px solid rgba(167,139,250,0.3)', cursor: 'pointer',
+                        background: selectedIds.has(app.id) ? '#A78BFA' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
+                      }}
+                    >
+                      {selectedIds.has(app.id) && <span style={{ color: '#000', fontSize: '12px', fontWeight: 900 }}>✓</span>}
+                    </div>
+
+                    <div 
+                      onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '20px', cursor: 'pointer' }}
+                    >
+                      <div style={{
+                        width: '48px', height: '48px', borderRadius: '14px',
+                        background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#A78BFA',
+                        fontSize: '1.2rem'
+                      }}>
+                        {(app.discordName || app.fullName || app.name || '?').charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '2px' }}>
+                          {app.discordName || app.fullName || app.name || 'Unknown User'}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                           {app.fullName && <span style={{ fontSize: '0.7rem', color: '#A78BFA', fontWeight: 700 }}>@{app.fullName}</span>}
+                           <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>ID: {app.discordId}</span>
+                           <span style={{ 
+                             fontSize: '0.6rem', padding: '2px 8px', borderRadius: '4px', 
+                             background: `${typeColors[app.type]}20`, color: typeColors[app.type],
+                             border: `1px solid ${typeColors[app.type]}40`, fontWeight: 900, textTransform: 'uppercase'
+                           }}>{app.type}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div 
-                    onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '20px', cursor: 'pointer' }}
-                  >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <span style={{
+                      padding: '6px 16px', borderRadius: '20px', fontSize: '0.65rem',
+                      fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
+                      background: app.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : app.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                      color: app.status === 'approved' ? '#10b981' : app.status === 'rejected' ? '#ef4444' : '#A78BFA',
+                      border: '1px solid rgba(255,255,255,0.04)',
+                    }}>
+                      {app.status}
+                    </span>
+                    
+                    <button 
+                      onClick={() => handleDelete(app.id)}
+                      disabled={actionLoading === app.id}
+                      title="Delete Submission"
+                      style={{ 
+                        background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                        padding: '8px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
+                    </button>
+
+                    <span 
+                      onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}
+                      style={{ transition: 'transform 0.3s', transform: expandedId === app.id ? 'rotate(180deg)' : 'none', color: '#475569', cursor: 'pointer' }}
+                    >▼</span>
+                  </div>
+                </div>
+
+                {expandedId === app.id && (
+                  <div style={{ padding: '32px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.2)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Age</div>
+                        <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{app.age}</div>
+                      </div>
+                      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>RP Experience</div>
+                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>{app.rpExperience}</div>
+                      </div>
+                    </div>
+
+                    {app.departmentReason && (
+                      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: typeColors[app.type], letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Reason for Joining {app.type.toUpperCase()}</div>
+                        <div style={{ fontSize: '0.95rem', color: '#fff', lineHeight: 1.7 }}>{app.departmentReason}</div>
+                      </div>
+                    )}
+
+                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Scenario Response</div>
+                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, fontStyle: 'italic' }}>"{app.scenarioAnswer}"</div>
+                    </div>
+
+                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Backstory</div>
+                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{app.characterBackstory}</div>
+                    </div>
+
+                    {app.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: '16px' }}>
+                        <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
+                          {actionLoading === app.id ? 'Processing...' : '✓ Approve Application'}
+                        </button>
+                        <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
+                          {actionLoading === app.id ? 'Processing...' : '✕ Reject Application'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Staff Management View */
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
+              <button 
+                onClick={() => setShowAddAdmin(true)}
+                className="sc-btn" 
+                style={{ borderRadius: '12px', fontSize: '0.8rem', padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <span>➕</span> Add New Admin
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {users.map(user => (
+                <div key={user.id} className="sc-card" style={{ padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div style={{
                       width: '48px', height: '48px', borderRadius: '14px',
-                      background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.1)',
+                      background: user.role === 'admin' ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.05)', 
+                      border: user.role === 'admin' ? '1px solid #A78BFA' : '1px solid rgba(255,255,255,0.1)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#A78BFA',
-                      fontSize: '1.2rem'
+                      fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: user.role === 'admin' ? '#A78BFA' : '#64748b',
                     }}>
-                      {(app.discordName || app.fullName || app.name || '?').charAt(0)}
+                      {user.name?.charAt(0) || '?'}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: '2px' }}>
-                        {app.discordName || app.fullName || app.name || 'Unknown User'}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                         {app.fullName && <span style={{ fontSize: '0.7rem', color: '#A78BFA', fontWeight: 700 }}>@{app.fullName}</span>}
-                         <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600 }}>ID: {app.discordId}</span>
-                         <span style={{ 
-                           fontSize: '0.6rem', padding: '2px 8px', borderRadius: '4px', 
-                           background: `${typeColors[app.type]}20`, color: typeColors[app.type],
-                           border: `1px solid ${typeColors[app.type]}40`, fontWeight: 900, textTransform: 'uppercase'
-                         }}>{app.type}</span>
+                      <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{user.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{user.email}</span>
+                        {user.discordUsername && <span style={{ fontSize: '0.7rem', color: '#A78BFA' }}>@{user.discordUsername}</span>}
                       </div>
                     </div>
                   </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <span style={{
+                      padding: '4px 12px', borderRadius: '6px', fontSize: '0.6rem',
+                      fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
+                      background: user.role === 'admin' ? 'rgba(167, 139, 250, 0.2)' : 'rgba(255,255,255,0.05)',
+                      color: user.role === 'admin' ? '#A78BFA' : '#64748b',
+                    }}>
+                      {user.role}
+                    </span>
+                    
+                    {user.role !== 'admin' ? (
+                      <button 
+                        onClick={() => handleRoleUpdate(user.id, 'admin')}
+                        disabled={actionLoading === user.id}
+                        className="sc-btn"
+                        style={{ padding: '6px 16px', fontSize: '0.65rem' }}
+                      >
+                        Make Admin
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleRoleUpdate(user.id, 'user')}
+                        disabled={actionLoading === user.id}
+                        className="sc-btn-outline"
+                        style={{ padding: '6px 16px', fontSize: '0.65rem', color: '#ef4444', borderColor: '#ef4444' }}
+                      >
+                        Revoke Access
+                      </button>
+                    )}
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                  <span style={{
-                    padding: '6px 16px', borderRadius: '20px', fontSize: '0.65rem',
-                    fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
-                    background: app.status === 'approved' ? 'rgba(16, 185, 129, 0.1)' : app.status === 'rejected' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                    color: app.status === 'approved' ? '#10b981' : app.status === 'rejected' ? '#ef4444' : '#A78BFA',
-                    border: '1px solid rgba(255,255,255,0.04)',
-                  }}>
-                    {app.status}
-                  </span>
-                  
-                  <button 
-                    onClick={() => handleDelete(app.id)}
-                    disabled={actionLoading === app.id}
-                    title="Delete Submission"
-                    style={{ 
-                      background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
-                      padding: '8px', borderRadius: '8px', color: '#ef4444', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
-                  </button>
-
-                  <span 
-                    onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}
-                    style={{ transition: 'transform 0.3s', transform: expandedId === app.id ? 'rotate(180deg)' : 'none', color: '#475569', cursor: 'pointer' }}
-                  >▼</span>
+            {/* Add Admin Modal */}
+            {showAddAdmin && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+              }}>
+                <div className="sc-card" style={{ maxWidth: '450px', width: '90%', padding: '40px' }}>
+                  <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '24px' }}>Add New Admin</h2>
+                  <form onSubmit={handleCreateAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <input 
+                      className="sc-input" placeholder="Full Name" required 
+                      value={newAdmin.name} onChange={e => setNewAdmin({...newAdmin, name: e.target.value})} 
+                    />
+                    <input 
+                      className="sc-input" type="email" placeholder="Email Address" required 
+                      value={newAdmin.email} onChange={e => setNewAdmin({...newAdmin, email: e.target.value})} 
+                    />
+                    <input 
+                      className="sc-input" type="password" placeholder="Password" required 
+                      value={newAdmin.password} onChange={e => setNewAdmin({...newAdmin, password: e.target.value})} 
+                    />
+                    <input 
+                      className="sc-input" placeholder="Discord Username (Optional)" 
+                      value={newAdmin.discordUsername} onChange={e => setNewAdmin({...newAdmin, discordUsername: e.target.value})} 
+                    />
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                      <button type="submit" disabled={loading} className="sc-btn" style={{ flex: 1 }}>
+                        {loading ? 'Creating...' : 'Create Account'}
+                      </button>
+                      <button type="button" onClick={() => setShowAddAdmin(false)} className="sc-btn-outline" style={{ flex: 1 }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
-
-              {expandedId === app.id && (
-                <div style={{ padding: '32px', borderTop: '1px solid rgba(255,255,255,0.04)', background: 'rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Age</div>
-                      <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{app.age}</div>
-                    </div>
-                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>RP Experience</div>
-                      <div style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>{app.rpExperience}</div>
-                    </div>
-                  </div>
-
-                  {app.departmentReason && (
-                    <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: typeColors[app.type], letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Reason for Joining {app.type.toUpperCase()}</div>
-                      <div style={{ fontSize: '0.95rem', color: '#fff', lineHeight: 1.7 }}>{app.departmentReason}</div>
-                    </div>
-                  )}
-
-                  <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Scenario Response</div>
-                    <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, fontStyle: 'italic' }}>"{app.scenarioAnswer}"</div>
-                  </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Backstory</div>
-                    <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{app.characterBackstory}</div>
-                  </div>
-
-                  {app.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                      <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
-                        {actionLoading === app.id ? 'Processing...' : '✓ Approve Application'}
-                      </button>
-                      <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
-                        {actionLoading === app.id ? 'Processing...' : '✕ Reject Application'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

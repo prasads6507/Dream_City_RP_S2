@@ -131,3 +131,24 @@ export const getUserData = async (uid) => {
   console.warn('❌ No user document found in Firestore for UID:', uid);
   return null;
 };
+
+/**
+ * Fetch all users from Firestore (Admin only recommended)
+ * @returns {Promise<Array>} List of users
+ */
+export const getAllUsers = async () => {
+  const { collection, getDocs } = await import('firebase/firestore');
+  const querySnapshot = await getDocs(collection(db, 'Users'));
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+/**
+ * Update a user's role in Firestore
+ * @param {string} uid - Target user UID
+ * @param {string} role - New role ('user', 'admin', etc.)
+ */
+export const updateUserRole = async (uid, role) => {
+  const { doc, updateDoc } = await import('firebase/firestore');
+  const userRef = doc(db, 'Users', uid);
+  await updateDoc(userRef, { role });
+};
