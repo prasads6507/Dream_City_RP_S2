@@ -10,11 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({
-  origin: '*', // Allow all origins for production compatibility
-  methods: ['GET', 'POST'],
-  credentials: true
-}));
+app.use(cors()); // Simplified to allow all for production stability
 app.use(express.json());
 
 // Health Check
