@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signInWithDiscord } from '../services/authService';
-import { submitApplication, checkDiscordDuplicate, subscribeToAppSettings } from '../services/applicationService';
+import { submitApplication, subscribeToAppSettings, getUserApplications } from '../services/applicationService';
 
 const Apply = () => {
   const { currentUser, userData, loading: authLoading } = useAuth();
@@ -13,12 +13,14 @@ const Apply = () => {
   const [appType, setAppType] = useState(null);
   const [step, setStep] = useState(1);
   
-  // Real-time app settings (Admin Toggles)
   const [appSettings, setAppSettings] = useState({
     policeLocked: true,
     emsLocked: true,
     mechanicLocked: true
   });
+
+  const [userApplications, setUserApplications] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(false);
 
   // Subscribe to real-time locks
   useEffect(() => {
@@ -40,7 +42,7 @@ const Apply = () => {
     characterBackstory: '',
   });
 
-  // Prefill when user data is available
+  // Prefill when user data is available & Fetch applications
   useEffect(() => {
     if (userData) {
       setFormData(prev => ({
@@ -49,6 +51,17 @@ const Apply = () => {
         discordName: userData.name || '',
         discordId: userData.discordId || '',
       }));
+
+      // Fetch existing applications
+      if (userData.discordId) {
+        const fetchApps = async () => {
+          setLoadingApps(true);
+          const apps = await getUserApplications(userData.discordId);
+          setUserApplications(apps);
+          setLoadingApps(false);
+        };
+        fetchApps();
+      }
     }
   }, [userData]);
 
@@ -148,9 +161,20 @@ const Apply = () => {
     if (!validateStep(3)) return;
     setLoading(true);
     try {
-      const isDuplicate = await checkDiscordDuplicate(formData.discordId);
+      // Check for duplicates again just in case
+      const apps = await getUserApplications(formData.discordId);
+      const isDuplicate = apps.some(app => app.type === appType);
+      
+      if (isDuplicate) {
+        throw new Error(`You have already submitted a ${appType} application.`);
+      }
+
       await submitApplication(formData, appType, currentUser.uid);
       setSubmitted(true);
+      
+      // Refresh applications list
+      const updatedApps = await getUserApplications(formData.discordId);
+      setUserApplications(updatedApps);
     } catch (err) {
       setError(err.message || 'Failed to submit.');
     } finally { setLoading(false); }
@@ -203,31 +227,58 @@ const Apply = () => {
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
-              {departments.map(dept => (
-                <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <span className={`sc-badge sc-badge-${dept.badgeType}`}>{dept.badge}</span>
-                    <span style={{ fontSize: '2rem' }}>{dept.icon}</span>
+              {departments.map(dept => {
+                const existingApp = userApplications.find(app => app.type === dept.id);
+                const isLocked = dept.locked;
+                
+                return (
+                  <div key={dept.id} className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className={`sc-badge sc-badge-${dept.badgeType}`}>{dept.badge}</span>
+                      <span style={{ fontSize: '2rem' }}>{dept.icon}</span>
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.5rem', marginBottom: '8px' }}>{dept.label}</h3>
+                      <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>{dept.desc}</p>
+                    </div>
+                    
+                    {existingApp ? (
+                      <div style={{ 
+                        marginTop: 'auto', 
+                        padding: '16px', 
+                        borderRadius: '12px', 
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        textAlign: 'center'
+                      }}>
+                        <p style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94a3b8', marginBottom: '4px', fontWeight: 700 }}>Application Status</p>
+                        <p style={{ 
+                          fontFamily: '"Outfit", sans-serif', 
+                          fontWeight: 900, 
+                          color: existingApp.status === 'approved' ? '#22c55e' : (existingApp.status === 'rejected' ? '#ef4444' : '#f59e0b'),
+                          textTransform: 'uppercase'
+                        }}>
+                          {existingApp.status}
+                        </p>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => startApplication(dept)} 
+                        className={isLocked ? 'sc-btn-outline' : 'sc-btn'} 
+                        style={{ 
+                          marginTop: 'auto', width: '100%', borderRadius: '8px', 
+                          opacity: isLocked ? 0.35 : 1, filter: isLocked ? 'grayscale(1)' : 'none',
+                          cursor: isLocked ? 'not-allowed' : 'pointer',
+                          display: 'flex', gap: '10px'
+                        }}
+                      >
+                        {isLocked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
+                        Apply Now
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <h3 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.5rem', marginBottom: '8px' }}>{dept.label}</h3>
-                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6 }}>{dept.desc}</p>
-                  </div>
-                  <button 
-                    onClick={() => startApplication(dept)} 
-                    className={dept.locked ? 'sc-btn-outline' : 'sc-btn'} 
-                    style={{ 
-                      marginTop: 'auto', width: '100%', borderRadius: '8px', 
-                      opacity: dept.locked ? 0.35 : 1, filter: dept.locked ? 'grayscale(1)' : 'none',
-                      cursor: dept.locked ? 'not-allowed' : 'pointer',
-                      display: 'flex', gap: '10px'
-                    }}
-                  >
-                    {dept.locked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
-                    Apply Now
-                  </button>
-                </div>
-              ))}
+                );
+              })}
               
               {/* Priority Placeholder Card */}
               <div className="sc-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '20px', border: '1px dashed rgba(245, 158, 11, 0.3)' }}>

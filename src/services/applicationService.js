@@ -37,6 +37,29 @@ export const checkDiscordDuplicate = async (discordId) => {
 };
 
 /**
+ * Fetch all applications for a specific Discord ID
+ * @param {string} discordId 
+ */
+export const getUserApplications = async (discordId) => {
+  if (!discordId) return [];
+  try {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('discordId', '==', discordId),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Failed to fetch user applications:', error);
+    return [];
+  }
+};
+
+/**
  * Submit an application for a specific role
  * @param {Object} data - Form data
  * @param {string} type - Application type (Civilian, EMS, Police, Mechanic)
