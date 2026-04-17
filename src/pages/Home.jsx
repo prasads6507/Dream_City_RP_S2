@@ -52,7 +52,7 @@ const Home = () => {
           muted 
           playsInline
           webkit-playsinline="true"
-          poster="/images/hero-bg.png"
+          preload="auto"
           style={{
             position: 'absolute',
             inset: 0,
