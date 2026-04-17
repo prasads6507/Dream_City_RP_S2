@@ -10,7 +10,9 @@ import {
   updateDoc,
   deleteDoc,
   writeBatch,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot,
+  setDoc
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import axios from 'axios';
@@ -133,4 +135,40 @@ export const deleteApplications = async (ids) => {
     batch.delete(doc(db, COLLECTION_NAME, id));
   });
   return await batch.commit();
+};
+
+/**
+ * Subscribe to realtime application locks
+ * @param {Function} callback - Called with the new settings object
+ */
+export const subscribeToAppSettings = (callback) => {
+  const settingsDoc = doc(db, 'System', 'appSettings');
+  
+  return onSnapshot(settingsDoc, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data());
+    } else {
+      // Default fallback if doc doesn't exist
+      callback({
+        policeLocked: true,
+        emsLocked: true,
+        mechanicLocked: true
+      });
+    }
+  }, (error) => {
+    console.error('Failed to subscribe to app settings:', error);
+  });
+};
+
+/**
+ * Update the lock status of a specific department
+ * @param {string} departmentId - e.g., 'police', 'ems', 'mechanic'
+ * @param {boolean} isLocked 
+ */
+export const updateAppLock = async (departmentId, isLocked) => {
+  const settingsDoc = doc(db, 'System', 'appSettings');
+  // Use setDoc with merge: true to create if it doesn't exist yet
+  await setDoc(settingsDoc, {
+    [`${departmentId}Locked`]: isLocked
+  }, { merge: true });
 };

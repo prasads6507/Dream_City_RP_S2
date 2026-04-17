@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signInWithDiscord } from '../services/authService';
-import { submitApplication, checkDiscordDuplicate } from '../services/applicationService';
+import { submitApplication, checkDiscordDuplicate, subscribeToAppSettings } from '../services/applicationService';
 
 const Apply = () => {
   const { currentUser, userData, loading: authLoading } = useAuth();
@@ -12,6 +12,21 @@ const Apply = () => {
   const [view, setView] = useState('selection'); // selection, form
   const [appType, setAppType] = useState(null);
   const [step, setStep] = useState(1);
+  
+  // Real-time app settings (Admin Toggles)
+  const [appSettings, setAppSettings] = useState({
+    policeLocked: true,
+    emsLocked: true,
+    mechanicLocked: true
+  });
+
+  // Subscribe to real-time locks
+  useEffect(() => {
+    const unsubscribe = subscribeToAppSettings((settings) => {
+      setAppSettings(settings);
+    });
+    return () => unsubscribe && unsubscribe();
+  }, []);
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -37,6 +52,9 @@ const Apply = () => {
     }
   }, [userData]);
 
+  // Determine standard role access fallback just in case, but global lock takes priority
+  const hasBaseAccess = userData?.role === 'member' || userData?.role === 'admin';
+
   const departments = [
     { 
       id: 'civilian', 
@@ -54,7 +72,7 @@ const Apply = () => {
       icon: '🚔', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+      locked: appSettings.policeLocked || !hasBaseAccess
     },
     { 
       id: 'ems', 
@@ -63,7 +81,7 @@ const Apply = () => {
       icon: '🚑', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+      locked: appSettings.emsLocked || !hasBaseAccess
     },
     { 
       id: 'mechanic', 
@@ -72,7 +90,7 @@ const Apply = () => {
       icon: '🔧', 
       badge: 'ALLOWLIST ONLY', 
       badgeType: 'membership',
-      locked: userData?.role !== 'member' && userData?.role !== 'admin'
+      locked: appSettings.mechanicLocked || !hasBaseAccess
     },
   ];
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllApplications, processApplicationDecision, deleteApplications } from '../services/applicationService';
+import { getAllApplications, processApplicationDecision, deleteApplications, subscribeToAppSettings, updateAppLock } from '../services/applicationService';
 import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFromBackend } from '../services/authService';
 import axios from 'axios';
 
@@ -19,9 +19,24 @@ const AdminDashboard = () => {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '' });
   
+  // Real-time app settings
+  const [appSettings, setAppSettings] = useState({
+    policeLocked: true,
+    emsLocked: true,
+    mechanicLocked: true
+  });
+
   // Pagination State
   const [staffPage, setStaffPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  // Subscribe to Application Locks
+  useEffect(() => {
+    const unsubscribe = subscribeToAppSettings((settings) => {
+      setAppSettings(settings);
+    });
+    return () => unsubscribe && unsubscribe();
+  }, []);
 
   useEffect(() => { 
     if (activeTab === 'applications') fetchApps();
@@ -398,6 +413,47 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Global Application Settings */}
+        {activeTab === 'applications' && (
+          <div className="sc-card" style={{ padding: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+            <div>
+              <h3 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '1.2rem', fontWeight: 900, marginBottom: '4px' }}>Global Application Access</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0 }}>Toggle these switches to instantly lock or unlock department applications for all users on the Apply page.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'police', label: 'Police', locked: appSettings.policeLocked, color: '#3B82F6' },
+                { id: 'ems', label: 'EMS', locked: appSettings.emsLocked, color: '#EF4444' },
+                { id: 'mechanic', label: 'Mechanic', locked: appSettings.mechanicLocked, color: '#F59E0B' }
+              ].map(dept => (
+                <div key={dept.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.4)', padding: '10px 16px', borderRadius: '10px', border: `1px solid ${dept.color}30` }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: dept.color, textTransform: 'uppercase', letterSpacing: '1px' }}>{dept.label}</span>
+                    <span style={{ fontSize: '0.65rem', color: dept.locked ? '#ef4444' : '#10b981', fontWeight: 700 }}>{dept.locked ? 'LOCKED' : 'UNLOCKED'}</span>
+                  </div>
+                  <button 
+                    onClick={() => updateAppLock(dept.id, !dept.locked)}
+                    style={{
+                      width: '40px', height: '22px', borderRadius: '20px',
+                      background: dept.locked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)',
+                      border: `1px solid ${dept.locked ? '#ef4444' : '#10b981'}`,
+                      position: 'relative', cursor: 'pointer', transition: 'all 0.3s'
+                    }}
+                  >
+                    <div style={{
+                      width: '14px', height: '14px', borderRadius: '50%',
+                      background: dept.locked ? '#ef4444' : '#10b981',
+                      position: 'absolute', top: '3px',
+                      left: dept.locked ? '4px' : '20px',
+                      transition: 'all 0.3s'
+                    }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Applications List */}
         {activeTab === 'applications' ? (
