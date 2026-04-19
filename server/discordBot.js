@@ -48,6 +48,40 @@ async function assignGuildRole(userId) {
   }
 }
 
+// GIF URLs for approved/rejected (Direct Image URLs for discord embeds)
+const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
+const REJECTED_GIF = 'https://media1.tenor.com/m/fbTDTvJHJmgAAAAC/rejected.gif';
+
+/**
+ * Creates the standardized embed for both DM and Channel notifications
+ */
+function createStatusEmbed(type, status, name, discordId) {
+  const isApproved = status === 'approved';
+  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  const gifUrl = isApproved ? APPROVED_GIF : REJECTED_GIF;
+  const statusEmoji = isApproved ? '✅' : '❌';
+  const statusText = isApproved ? 'APPROVED' : 'REJECTED';
+  const color = isApproved ? 0x22c55e : 0xef4444;
+
+  const description = isApproved
+    ? `**${name}**! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**.\n\nWelcome to the Dream City Roleplay S2! 🎉`
+    : `**${name}**, we regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**.\n\nYou may reapply in the future.`;
+
+  return {
+    title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
+    description: description,
+    color: color,
+    fields: [
+      { name: '👤 Applicant', value: `<@${discordId}>`, inline: true },
+      { name: '📋 Department', value: typeLabel, inline: true },
+      { name: '📌 Status', value: statusText, inline: true }
+    ],
+    image: { url: gifUrl },
+    footer: { text: 'Dream City Roleplay • Staff Management' },
+    timestamp: new Date().toISOString()
+  };
+}
+
 /**
  * Send a DM to a user by their Discord ID
  * @param {string} discordId - The user ID or username#1234 (ID is more reliable)
@@ -56,7 +90,6 @@ async function assignGuildRole(userId) {
  */
 async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
   try {
-    // Note: To find a user by ID, the bot must share a server with them or have them in cache
     const user = await client.users.fetch(discordId);
     
     if (!user) {
@@ -64,13 +97,10 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
       return { success: false, error: 'User not found' };
     }
 
-    const typeLabel = type.toUpperCase();
-    const message = status === 'approved' 
-      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the Dream City Roleplay S2!\n\nhttps://gifdb.com/gif/approved-498-x-498-gif-5cqy83ahb678q1sa.html`
-      : `❌ Hello ${name}. We regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**. You may reapply in the future.\n\nhttps://tenor.com/view/rejected-gif-21749587`;
-
-    await user.send(message);
-    console.log(`✉️ DM sent to ${user.tag} (${status})`);
+    const embed = createStatusEmbed(type, status, name, discordId);
+    await user.send({ embeds: [embed] });
+    
+    console.log(`✉️ DM Embed sent to ${user.tag} (${status})`);
     return { success: true };
   } catch (error) {
     console.error(`❌ Failed to send DM to ${discordId}:`, error.message);
@@ -87,10 +117,6 @@ const DEPARTMENT_CHANNELS = {
   ems: '1493620878938734662',
   mechanic: '1493620879798567035'
 };
-
-// GIF URLs for approved/rejected
-const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
-const REJECTED_GIF = 'https://media1.tenor.com/m/ky0GGQT7KmYAAAAd/rejected.gif';
 
 /**
  * Send a notification to the department-specific Discord channel
@@ -113,30 +139,9 @@ async function sendChannelNotification(type, status, name, discordId) {
       return { success: false, error: 'Channel not found' };
     }
 
-    const isApproved = status === 'approved';
-    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-    const gifUrl = isApproved ? APPROVED_GIF : REJECTED_GIF;
-    const statusEmoji = isApproved ? '✅' : '❌';
-    const statusText = isApproved ? 'APPROVED' : 'REJECTED';
-    const color = isApproved ? 0x22c55e : 0xef4444;
-
-    const embed = {
-      title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
-      description: isApproved
-        ? `**${name}** has been **APPROVED** for the **${typeLabel} Department**! Welcome to the Dream City Roleplay S2! 🎉`
-        : `**${name}**'s application for the **${typeLabel} Department** has been **REJECTED**. Better luck next time.`,
-      color: color,
-      fields: [
-        { name: '👤 Applicant', value: `<@${discordId}>`, inline: true },
-        { name: '📋 Department', value: typeLabel, inline: true },
-        { name: '📌 Status', value: statusText, inline: true }
-      ],
-      image: { url: gifUrl },
-      footer: { text: 'Dream City Roleplay • Staff Management' },
-      timestamp: new Date().toISOString()
-    };
-
+    const embed = createStatusEmbed(type, status, name, discordId);
     await channel.send({ embeds: [embed] });
+    
     console.log(`📢 Channel notification sent to #${channel.name} for ${name} (${status})`);
     return { success: true };
   } catch (error) {
