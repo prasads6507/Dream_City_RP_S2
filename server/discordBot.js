@@ -50,7 +50,7 @@ async function assignGuildRole(userId) {
 
 // GIF URLs for approved/rejected (Direct Image URLs for discord embeds)
 const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
-const REJECTED_GIF = 'https://media1.tenor.com/m/fbTDTvJHJmgAAAAC/rejected.gif';
+const REJECTED_GIF = 'https://www.image2url.com/r2/default/images/1776573467268-e893164b-4c67-4752-9f05-091137e5f6a1.gif';
 
 /**
  * Creates the standardized embed for both DM and Channel notifications
