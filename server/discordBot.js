@@ -66,7 +66,7 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
 
     const typeLabel = type.toUpperCase();
     const message = status === 'approved' 
-      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the department!`
+      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the Dream City Roleplay S2!`
       : `❌ Hello ${name}. We regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**. You may reapply in the future.`;
 
     await user.send(message);
@@ -123,7 +123,7 @@ async function sendChannelNotification(type, status, name, discordId) {
     const embed = {
       title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
       description: isApproved
-        ? `**${name}** has been **APPROVED** for the **${typeLabel} Department**! Welcome aboard! 🎉`
+        ? `**${name}** has been **APPROVED** for the **${typeLabel} Department**! Welcome to the Dream City Roleplay S2! 🎉`
         : `**${name}**'s application for the **${typeLabel} Department** has been **REJECTED**. Better luck next time.`,
       color: color,
       fields: [
