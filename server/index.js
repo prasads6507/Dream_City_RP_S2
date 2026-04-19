@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM, assignGuildRole, sendChannelNotification } = require('./discordBot');
+const { sendStatusDM, assignGuildRole, removeGuildRole, sendChannelNotification } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -200,6 +200,15 @@ app.delete('/api/users/:uid', async (req, res) => {
   const { uid } = req.params;
 
   try {
+    // 0. Fetch user doc first to get Discord ID (for role removal)
+    let discordIdToRemove = null;
+    if (db) {
+      const userDoc = await db.collection('Users').doc(uid).get();
+      if (userDoc.exists) {
+        discordIdToRemove = userDoc.data().discordId;
+      }
+    }
+
     // 1. Delete from Firebase Auth (if they exist)
     try {
       await admin.auth().deleteUser(uid);
@@ -218,7 +227,13 @@ app.delete('/api/users/:uid', async (req, res) => {
       console.log(`📄 Deleted Firestore Doc: ${uid}`);
     }
 
-    res.json({ success: true, message: 'User permanently removed.' });
+    // 3. Automatically remove Discord Role if discordId was found
+    if (discordIdToRemove) {
+      console.log(`📡 Triggering Discord role removal for: ${discordIdToRemove}`);
+      await removeGuildRole(discordIdToRemove);
+    }
+
+    res.json({ success: true, message: 'User permanently removed and access revoked.' });
   } catch (error) {
     console.error('❌ Deletion failed:', error.message);
     res.status(500).json({ success: false, message: error.message });

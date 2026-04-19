@@ -48,6 +48,37 @@ async function assignGuildRole(userId) {
   }
 }
 
+/**
+ * Remove a specific role from a user in the guild
+ * @param {string} userId - Discord User ID
+ */
+async function removeGuildRole(userId) {
+  try {
+    const guild = GUILD_ID 
+      ? await client.guilds.fetch(GUILD_ID) 
+      : client.guilds.cache.first();
+
+    if (!guild) {
+      console.error('❌ Could not find Discord Guild.');
+      return { success: false, error: 'Guild not found' };
+    }
+
+    const member = await guild.members.fetch(userId).catch(() => null);
+    if (!member) {
+      console.warn(`⚠️ Member ${userId} not found in guild. They may have already left.`);
+      return { success: false, error: 'Member not found' };
+    }
+
+    console.log(`⏳ Attempting to remove role ${ROLE_ID} from ${member.user.tag}...`);
+    await member.roles.remove(ROLE_ID);
+    console.log(`✅ Removed role ${ROLE_ID} from ${member.user.tag}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ Failed to remove role from ${userId}:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // GIF URLs for approved/rejected (Direct Image URLs for discord embeds)
 const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
 const REJECTED_GIF = 'https://www.image2url.com/r2/default/images/1776573467268-e893164b-4c67-4752-9f05-091137e5f6a1.gif';
@@ -157,4 +188,4 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
   console.warn('⚠️ DISCORD_BOT_TOKEN not configured. Bot will not start.');
 }
 
-module.exports = { sendStatusDM, assignGuildRole, sendChannelNotification };
+module.exports = { sendStatusDM, assignGuildRole, removeGuildRole, sendChannelNotification };
