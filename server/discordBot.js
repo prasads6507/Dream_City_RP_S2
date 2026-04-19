@@ -81,6 +81,70 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
   }
 }
 
+// Department Channel IDs
+const DEPARTMENT_CHANNELS = {
+  police: '1493620877231915150',
+  ems: '1493620878938734662',
+  mechanic: '1493620879798567035'
+};
+
+// GIF URLs for approved/rejected
+const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
+const REJECTED_GIF = 'https://media1.tenor.com/m/ky0GGQT7KmYAAAAd/rejected.gif';
+
+/**
+ * Send a notification to the department-specific Discord channel
+ * @param {string} type - 'police', 'ems', 'mechanic', or 'civilian'
+ * @param {string} status - 'approved' or 'rejected'
+ * @param {string} name - Applicant name
+ * @param {string} discordId - Applicant Discord ID
+ */
+async function sendChannelNotification(type, status, name, discordId) {
+  try {
+    const channelId = DEPARTMENT_CHANNELS[type];
+    if (!channelId) {
+      console.log(`ℹ️ No channel configured for type: ${type}, skipping channel notification.`);
+      return { success: false, error: 'No channel for this department' };
+    }
+
+    const channel = await client.channels.fetch(channelId);
+    if (!channel) {
+      console.error(`❌ Could not find channel: ${channelId}`);
+      return { success: false, error: 'Channel not found' };
+    }
+
+    const isApproved = status === 'approved';
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    const gifUrl = isApproved ? APPROVED_GIF : REJECTED_GIF;
+    const statusEmoji = isApproved ? '✅' : '❌';
+    const statusText = isApproved ? 'APPROVED' : 'REJECTED';
+    const color = isApproved ? 0x22c55e : 0xef4444;
+
+    const embed = {
+      title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
+      description: isApproved
+        ? `**${name}** has been **APPROVED** for the **${typeLabel} Department**! Welcome aboard! 🎉`
+        : `**${name}**'s application for the **${typeLabel} Department** has been **REJECTED**. Better luck next time.`,
+      color: color,
+      fields: [
+        { name: '👤 Applicant', value: `<@${discordId}>`, inline: true },
+        { name: '📋 Department', value: typeLabel, inline: true },
+        { name: '📌 Status', value: statusText, inline: true }
+      ],
+      image: { url: gifUrl },
+      footer: { text: 'Dream City Roleplay • Staff Management' },
+      timestamp: new Date().toISOString()
+    };
+
+    await channel.send({ embeds: [embed] });
+    console.log(`📢 Channel notification sent to #${channel.name} for ${name} (${status})`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ Failed to send channel notification:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 // Log in the bot
 if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DISCORD_BOT_TOKEN') {
   client.login(process.env.DISCORD_BOT_TOKEN);
@@ -88,4 +152,4 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
   console.warn('⚠️ DISCORD_BOT_TOKEN not configured. Bot will not start.');
 }
 
-module.exports = { sendStatusDM, assignGuildRole };
+module.exports = { sendStatusDM, assignGuildRole, sendChannelNotification };
