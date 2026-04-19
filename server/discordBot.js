@@ -66,8 +66,8 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
 
     const typeLabel = type.toUpperCase();
     const message = status === 'approved' 
-      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the Dream City Roleplay S2!`
-      : `❌ Hello ${name}. We regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**. You may reapply in the future.`;
+      ? `✅ Hello ${name}! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**. Welcome to the Dream City Roleplay S2!\n\nhttps://gifdb.com/gif/approved-498-x-498-gif-5cqy83ahb678q1sa.html`
+      : `❌ Hello ${name}. We regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**. You may reapply in the future.\n\nhttps://tenor.com/view/rejected-gif-21749587`;
 
     await user.send(message);
     console.log(`✉️ DM sent to ${user.tag} (${status})`);
