@@ -852,7 +852,7 @@ const AdminDashboard = () => {
                       value={newAdmin.password} onChange={e => setNewAdmin({...newAdmin, password: e.target.value})} 
                     />
                     <input 
-                      className="sc-input" placeholder="Discord Username (Optional)" 
+                      className="sc-input" placeholder="Discord Username or ID (Optional)" 
                       value={newAdmin.discordUsername} onChange={e => setNewAdmin({...newAdmin, discordUsername: e.target.value})} 
                     />
                     <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>

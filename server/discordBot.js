@@ -50,9 +50,11 @@ async function assignGuildRole(userId) {
 
 /**
  * Remove a specific role from a user in the guild
- * @param {string} userId - Discord User ID
+ * @param {string|null} userInfo - Discord User ID or Username
  */
-async function removeGuildRole(userId) {
+async function removeGuildRole(userInfo) {
+  if (!userInfo) return { success: false, error: 'No user info provided' };
+  
   try {
     const guild = GUILD_ID 
       ? await client.guilds.fetch(GUILD_ID) 
@@ -63,9 +65,26 @@ async function removeGuildRole(userId) {
       return { success: false, error: 'Guild not found' };
     }
 
-    const member = await guild.members.fetch(userId).catch(() => null);
+    let member = null;
+
+    // Try finding by ID first
+    if (/^\d+$/.test(userInfo)) {
+      member = await guild.members.fetch(userInfo).catch(() => null);
+    }
+
+    // Fallback: Search by username/tag if not found by ID
     if (!member) {
-      console.warn(`⚠️ Member ${userId} not found in guild. They may have already left.`);
+      console.log(`🔍 Member not found by ID. Searching by username: ${userInfo}`);
+      const members = await guild.members.fetch();
+      member = members.find(m => 
+        m.user.username.toLowerCase() === userInfo.toLowerCase() || 
+        m.user.tag.toLowerCase() === userInfo.toLowerCase() ||
+        (m.nickname && m.nickname.toLowerCase() === userInfo.toLowerCase())
+      );
+    }
+
+    if (!member) {
+      console.warn(`⚠️ Member ${userInfo} not found in guild. They may have already left or username is incorrect.`);
       return { success: false, error: 'Member not found' };
     }
 
@@ -74,7 +93,7 @@ async function removeGuildRole(userId) {
     console.log(`✅ Removed role ${ROLE_ID} from ${member.user.tag}`);
     return { success: true };
   } catch (error) {
-    console.error(`❌ Failed to remove role from ${userId}:`, error.message);
+    console.error(`❌ Failed to remove role from ${userInfo}:`, error.message);
     return { success: false, error: error.message };
   }
 }
