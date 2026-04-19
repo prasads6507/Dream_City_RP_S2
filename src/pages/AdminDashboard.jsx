@@ -120,6 +120,19 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) return;
     setActionLoading(id);
     try {
+      // Find the application data to check if role needs to be revoked
+      const app = applications.find(a => a.id === id);
+      if (app && app.status === 'approved' && app.discordId) {
+        // Revoke Discord role before deleting
+        try {
+          let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+          baseUrl = baseUrl.replace(/\/$/, '');
+          await axios.post(`${baseUrl}/api/revoke-role`, { discordId: app.discordId });
+          console.log('✅ Discord role revoked for', app.discordId);
+        } catch (revokeErr) {
+          console.warn('⚠️ Failed to revoke Discord role:', revokeErr.message);
+        }
+      }
       await deleteApplications([id]);
       setApplications(prev => prev.filter(a => a.id !== id));
       setSelectedIds(prev => {
@@ -127,7 +140,7 @@ const AdminDashboard = () => {
         next.delete(id);
         return next;
       });
-      setToast({ type: 'success', message: 'Application deleted.' });
+      setToast({ type: 'success', message: 'Application deleted and Discord role revoked.' });
       setTimeout(() => setToast(null), 3000);
     } catch (err) {
       setToast({ type: 'error', message: 'Delete failed.' });
@@ -141,10 +154,23 @@ const AdminDashboard = () => {
     if (!window.confirm(`Are you sure you want to delete ${ids.length} applications? This action cannot be undone.`)) return;
     setLoading(true);
     try {
+      // Revoke Discord roles for any approved applications being deleted
+      let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+      baseUrl = baseUrl.replace(/\/$/, '');
+      for (const id of ids) {
+        const app = applications.find(a => a.id === id);
+        if (app && app.status === 'approved' && app.discordId) {
+          try {
+            await axios.post(`${baseUrl}/api/revoke-role`, { discordId: app.discordId });
+          } catch (revokeErr) {
+            console.warn(`⚠️ Failed to revoke role for ${app.discordId}:`, revokeErr.message);
+          }
+        }
+      }
       await deleteApplications(ids);
       setApplications(prev => prev.filter(a => !selectedIds.has(a.id)));
       setSelectedIds(new Set());
-      setToast({ type: 'success', message: `${ids.length} applications deleted.` });
+      setToast({ type: 'success', message: `${ids.length} applications deleted and roles revoked.` });
       setTimeout(() => setToast(null), 3000);
     } catch (err) {
       setToast({ type: 'error', message: 'Bulk delete failed.' });

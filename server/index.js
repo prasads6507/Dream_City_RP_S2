@@ -151,6 +151,31 @@ app.post('/api/notify-user', async (req, res) => {
 });
 
 /**
+ * Revoke Discord Role (when application is deleted)
+ * POST /api/revoke-role
+ */
+app.post('/api/revoke-role', async (req, res) => {
+  const { discordId } = req.body;
+  console.log(`🔴 Received /api/revoke-role: ID=${discordId}`);
+
+  if (!discordId) {
+    return res.status(400).json({ success: false, message: 'Missing discordId' });
+  }
+
+  try {
+    const result = await removeGuildRole(discordId);
+    if (result.success) {
+      res.json({ success: true, message: 'Discord role revoked successfully' });
+    } else {
+      res.status(500).json({ success: false, message: result.error });
+    }
+  } catch (error) {
+    console.error('❌ Revoke role failed:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
  * Whitelist User on FiveM (Option B: Firestore sync)
  * POST /api/whitelist-player
  */
