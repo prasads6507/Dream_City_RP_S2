@@ -614,25 +614,25 @@ const AdminDashboard = () => {
                       </div>
                       <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>RP Experience</div>
-                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>{app.rpExperience}</div>
+                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.rpExperience}</div>
                       </div>
                     </div>
 
                     {app.departmentReason && (
                       <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 900, color: typeColors[app.type], letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Reason for Joining {app.type.toUpperCase()}</div>
-                        <div style={{ fontSize: '0.95rem', color: '#fff', lineHeight: 1.7 }}>{app.departmentReason}</div>
+                        <div style={{ fontSize: '0.95rem', color: '#fff', lineHeight: 1.7, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.departmentReason}</div>
                       </div>
                     )}
 
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
                       <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Scenario Response</div>
-                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, fontStyle: 'italic' }}>"{app.scenarioAnswer}"</div>
+                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, fontStyle: 'italic', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>"{app.scenarioAnswer}"</div>
                     </div>
 
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>
                       <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Backstory</div>
-                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{app.characterBackstory}</div>
+                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.characterBackstory}</div>
                     </div>
 
                     {app.status === 'pending' && (
