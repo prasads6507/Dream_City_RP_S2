@@ -33,9 +33,10 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect to dashboard if not admin trying to access admin route
-  if (adminOnly && userData?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+  // Redirect to login if not a staff member trying to access admin route
+  const STAFF_ROLES = ['admin', 'police', 'ems', 'mechanic'];
+  if (adminOnly && !STAFF_ROLES.includes(userData?.role)) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

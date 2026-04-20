@@ -68,13 +68,14 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
- * Filtered Staff Feed
+ * Filtered Staff Feed — returns all staff-level users (admin, police, ems, mechanic)
  * GET /api/users
  */
 app.get('/api/users', async (req, res) => {
   if (!db) return res.status(500).json({ success: false, message: 'DB not initialized' });
   try {
-    const snapshot = await db.collection('Users').where('role', '==', 'admin').get();
+    const staffRoles = ['admin', 'police', 'ems', 'mechanic'];
+    const snapshot = await db.collection('Users').where('role', 'in', staffRoles).get();
     const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.json({ success: true, users });
   } catch (error) {

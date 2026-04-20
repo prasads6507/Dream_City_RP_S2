@@ -11,10 +11,13 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // All staff roles that can access the dashboard
+  const STAFF_ROLES = ['admin', 'police', 'ems', 'mechanic'];
+
   useEffect(() => {
     if (!authLoading && currentUser && userData) {
-      if (userData.role === 'admin') navigate('/admin');
-      else setError('Unauthorized: Admin credentials required.');
+      if (STAFF_ROLES.includes(userData.role)) navigate('/admin');
+      else setError('Unauthorized: Staff credentials required.');
     }
   }, [currentUser, userData, authLoading, navigate]);
 
@@ -25,8 +28,8 @@ const Login = () => {
     try {
       const cred = await signIn(email, password);
       const data = await getUserData(cred.user.uid);
-      if (data?.role === 'admin') navigate('/admin');
-      else throw new Error('Access Denied. Admin role required.');
+      if (STAFF_ROLES.includes(data?.role)) navigate('/admin');
+      else throw new Error('Access Denied. Staff role required.');
     } catch (err) {
       setError(err.message || 'Invalid credentials.');
     } finally { setLoading(false); }

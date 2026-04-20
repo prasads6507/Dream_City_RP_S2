@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getAllApplications, processApplicationDecision, deleteApplications, subscribeToAppSettings, updateAppLock } from '../services/applicationService';
 import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFromBackend } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 const AdminDashboard = () => {
+  const { userData } = useAuth();
+  const userRole = userData?.role || 'admin';
+  const isMainAdmin = userRole === 'admin';
+
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' or 'staff'
   const [applications, setApplications] = useState([]);
   const [users, setUsers] = useState([]);
@@ -17,7 +22,7 @@ const AdminDashboard = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectedStaffIds, setSelectedStaffIds] = useState(new Set());
   const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '' });
+  const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '', role: 'admin' });
   
   // Real-time app settings
   const [appSettings, setAppSettings] = useState({
@@ -209,11 +214,13 @@ const AdminDashboard = () => {
       const { email, password, name, discordUsername } = newAdmin;
       
       // Use Backend Silent Creation to prevent logout
-      await createAdminAccount({ email, password, name, discordUsername, role: 'admin' });
+      const selectedRole = newAdmin.role || 'admin';
+      await createAdminAccount({ email, password, name, discordUsername, role: selectedRole });
       
-      setToast({ type: 'success', message: `Admin account for ${name} created successfully!` });
+      const roleLabel = { admin: 'Main Admin', police: 'Police', ems: 'EMS', mechanic: 'Mechanic' }[selectedRole] || selectedRole;
+      setToast({ type: 'success', message: `${roleLabel} account for ${name} created successfully!` });
       setShowAddAdmin(false);
-      setNewAdmin({ email: '', password: '', name: '', discordUsername: '' });
+      setNewAdmin({ email: '', password: '', name: '', discordUsername: '', role: 'admin' });
       fetchUsers(); // Refresh list from backend
     } catch (err) {
       setToast({ type: 'error', message: err.message || 'Failed to create admin.' });
@@ -276,14 +283,15 @@ const AdminDashboard = () => {
     }
   };
 
+  const STAFF_ROLES = ['admin', 'police', 'ems', 'mechanic'];
   const filteredAdmins = users.filter(u => {
-    const isAdmin = u.role === 'admin';
+    const isStaff = STAFF_ROLES.includes(u.role);
     const searchLower = searchQuery.toLowerCase();
     const searchName = u.name?.toLowerCase() || '';
     const searchEmail = u.email?.toLowerCase() || '';
     const searchDiscord = u.discordUsername?.toLowerCase() || '';
     const matchesSearch = !searchQuery || searchName.includes(searchLower) || searchEmail.includes(searchLower) || searchDiscord.includes(searchLower);
-    return isAdmin && matchesSearch;
+    return isStaff && matchesSearch;
   });
   const indexOfLastStaff = staffPage * itemsPerPage;
   const indexOfFirstStaff = indexOfLastStaff - itemsPerPage;
@@ -298,9 +306,12 @@ const AdminDashboard = () => {
     }
   };
 
+  // Role-based filtering: department users only see their department's applications
+  const effectiveTypeFilter = isMainAdmin ? typeFilter : userRole;
+
   const filtered = applications.filter(a => {
     const matchesStatus = filter === 'all' || a.status === filter;
-    const matchesType = typeFilter === 'all' || a.type === typeFilter;
+    const matchesType = effectiveTypeFilter === 'all' || a.type === effectiveTypeFilter;
     const searchLower = searchQuery.toLowerCase();
     const searchName = a.discordName?.toLowerCase() || '';
     const searchFullName = a.fullName?.toLowerCase() || '';
@@ -315,12 +326,18 @@ const AdminDashboard = () => {
   const currentApps = filtered.slice(indexOfFirstApp, indexOfLastApp);
   const totalAppPages = Math.ceil(filtered.length / itemsPerPage);
 
+  // Counts should reflect department-scoped data for department users
+  const scopedApps = isMainAdmin ? applications : applications.filter(a => a.type === userRole);
   const counts = {
-    all: applications.length,
-    pending: applications.filter(a => a.status === 'pending').length,
-    approved: applications.filter(a => a.status === 'approved').length,
-    rejected: applications.filter(a => a.status === 'rejected').length,
+    all: scopedApps.length,
+    pending: scopedApps.filter(a => a.status === 'pending').length,
+    approved: scopedApps.filter(a => a.status === 'approved').length,
+    rejected: scopedApps.filter(a => a.status === 'rejected').length,
   };
+
+  // Department label for header
+  const deptLabels = { admin: '', police: 'Police', ems: 'EMS', mechanic: 'Mechanic' };
+  const deptLabel = deptLabels[userRole] || '';
 
   const typeColors = {
     civilian: '#A78BFA',
@@ -383,29 +400,47 @@ const AdminDashboard = () => {
               transition: 'all 0.3s'
             }}
           >
-            Applications
+            {isMainAdmin ? 'Applications' : `${deptLabel} Applications`}
           </button>
-          <button 
-            onClick={() => setActiveTab('staff')}
-            style={{ 
-              padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
-              color: activeTab === 'staff' ? '#A78BFA' : '#64748b',
-              fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '2px',
-              borderBottom: activeTab === 'staff' ? '2px solid #A78BFA' : '2px solid transparent',
-              transition: 'all 0.3s'
-            }}
-          >
-            Staff Management
-          </button>
+          {isMainAdmin && (
+            <button 
+              onClick={() => setActiveTab('staff')}
+              style={{ 
+                padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
+                color: activeTab === 'staff' ? '#A78BFA' : '#64748b',
+                fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '2px',
+                borderBottom: activeTab === 'staff' ? '2px solid #A78BFA' : '2px solid transparent',
+                transition: 'all 0.3s'
+              }}
+            >
+              Staff Management
+            </button>
+          )}
+          {/* Department Role Badge */}
+          {!isMainAdmin && (
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{
+                padding: '6px 16px', borderRadius: '20px', fontSize: '0.65rem',
+                fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
+                background: userRole === 'police' ? 'rgba(59,130,246,0.15)' : userRole === 'ems' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                color: userRole === 'police' ? '#3B82F6' : userRole === 'ems' ? '#EF4444' : '#F59E0B',
+                border: `1px solid ${userRole === 'police' ? '#3B82F640' : userRole === 'ems' ? '#EF444440' : '#F59E0B40'}`,
+              }}>
+                {deptLabel} Department
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Metrics Overview */}
         {activeTab === 'applications' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #A78BFA' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Total Admins</div>
-              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff' }}>{users.length}</div>
-            </div>
+            {isMainAdmin && (
+              <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #A78BFA' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Total Staff Members</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fff' }}>{users.length}</div>
+              </div>
+            )}
             <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #F59E0B' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Pending Applications</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#F59E0B' }}>{counts.pending}</div>
@@ -425,10 +460,10 @@ const AdminDashboard = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px', marginBottom: '40px' }}>
           <div>
             <h1 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px', color: '#A78BFA' }}>
-              {activeTab === 'applications' ? 'Recruitment' : 'Staff'} <span style={{ color: '#fff' }}>Desk</span>
+              {activeTab === 'applications' ? (isMainAdmin ? 'Recruitment' : deptLabel) : 'Staff'} <span style={{ color: '#fff' }}>Desk</span>
             </h1>
             <p style={{ color: '#94a3b8' }}>
-              {activeTab === 'applications' ? 'Review and manage portal applications' : 'Manage administrative access and team members'}
+              {activeTab === 'applications' ? (isMainAdmin ? 'Review and manage portal applications' : `Review and manage ${deptLabel} department applications`) : 'Manage administrative access and team members'}
             </p>
           </div>
           
@@ -487,27 +522,37 @@ const AdminDashboard = () => {
                 <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.8rem' }}>🔍</span>
               </div>
 
-              <select 
-                value={typeFilter} 
-                onChange={(e) => setTypeFilter(e.target.value)}
-                style={{
-                  background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(167,139,250,0.1)',
-                  borderRadius: '10px', color: '#A78BFA', padding: '8px 12px',
-                  fontSize: '0.75rem', fontWeight: 700, outline: 'none'
-                }}
-              >
-                <option value="all">All Departments</option>
-                <option value="civilian">Civilian</option>
-                <option value="police">Police Dept</option>
-                <option value="ems">EMS</option>
-                <option value="mechanic">Mechanic</option>
-              </select>
+              {/* Department filter — only visible to main admin */}
+              {isMainAdmin ? (
+                <select 
+                  value={typeFilter} 
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  style={{
+                    background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(167,139,250,0.1)',
+                    borderRadius: '10px', color: '#A78BFA', padding: '8px 12px',
+                    fontSize: '0.75rem', fontWeight: 700, outline: 'none'
+                  }}
+                >
+                  <option value="all">All Departments</option>
+                  <option value="civilian">Civilian</option>
+                  <option value="police">Police Dept</option>
+                  <option value="ems">EMS</option>
+                  <option value="mechanic">Mechanic</option>
+                </select>
+              ) : (
+                <span style={{
+                  padding: '8px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700,
+                  background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(167,139,250,0.1)', color: '#A78BFA'
+                }}>
+                  {deptLabel} Only
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Global Application Settings */}
-        {activeTab === 'applications' && (
+        {/* Global Application Settings — Admin Only */}
+        {activeTab === 'applications' && isMainAdmin && (
           <div className="sc-card" style={{ padding: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
             <div>
               <h3 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '1.2rem', fontWeight: 900, marginBottom: '4px' }}>Global Application Access</h3>
@@ -747,7 +792,7 @@ const AdminDashboard = () => {
                 className="sc-btn" 
                 style={{ borderRadius: '12px', fontSize: '0.8rem', padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
-                <span>➕</span> Add New Admin
+                <span>➕</span> Add New Staff
               </button>
             </div>
 
@@ -791,8 +836,18 @@ const AdminDashboard = () => {
                     <span style={{
                       padding: '4px 12px', borderRadius: '6px', fontSize: '0.6rem',
                       fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px',
-                      background: 'rgba(167,139,250,0.2)',
-                      color: '#A78BFA',
+                      background: user.role === 'police' ? 'rgba(59,130,246,0.15)' : 
+                                  user.role === 'ems' ? 'rgba(239,68,68,0.15)' : 
+                                  user.role === 'mechanic' ? 'rgba(245,158,11,0.15)' : 
+                                  'rgba(167,139,250,0.15)',
+                      color: user.role === 'police' ? '#3B82F6' : 
+                             user.role === 'ems' ? '#EF4444' : 
+                             user.role === 'mechanic' ? '#F59E0B' : 
+                             '#A78BFA',
+                      border: `1px solid ${user.role === 'police' ? '#3B82F640' : 
+                                            user.role === 'ems' ? '#EF444440' : 
+                                            user.role === 'mechanic' ? '#F59E0B40' : 
+                                            '#A78BFA40'}`,
                     }}>
                       {user.role}
                     </span>
@@ -863,7 +918,7 @@ const AdminDashboard = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
               }}>
                 <div className="sc-card" style={{ maxWidth: '450px', width: '90%', padding: '40px' }}>
-                  <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '24px' }}>Add New Admin</h2>
+                  <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '24px' }}>Add New Staff Member</h2>
                   <form onSubmit={handleCreateAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <input 
                       className="sc-input" placeholder="Full Name" required 
@@ -881,6 +936,25 @@ const AdminDashboard = () => {
                       className="sc-input" placeholder="Discord Username or ID (Optional)" 
                       value={newAdmin.discordUsername} onChange={e => setNewAdmin({...newAdmin, discordUsername: e.target.value})} 
                     />
+                    <select 
+                      className="sc-input" 
+                      value={newAdmin.role} 
+                      onChange={e => setNewAdmin({...newAdmin, role: e.target.value})}
+                      style={{
+                        background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(167,139,250,0.1)',
+                        borderRadius: '14px', color: '#fff', padding: '14px 18px',
+                        fontSize: '0.95rem', fontFamily: '"Inter", sans-serif', outline: 'none',
+                        cursor: 'pointer', appearance: 'none',
+                        backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23A78BFA%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 14px center'
+                      }}
+                    >
+                      <option value="admin" style={{ background: '#0a0a0f' }}>🔑 Main Admin (Full Access)</option>
+                      <option value="police" style={{ background: '#0a0a0f' }}>🚔 Police Department</option>
+                      <option value="ems" style={{ background: '#0a0a0f' }}>🚑 EMS Department</option>
+                      <option value="mechanic" style={{ background: '#0a0a0f' }}>🔧 Mechanic Department</option>
+                    </select>
                     <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                       <button type="submit" disabled={loading} className="sc-btn" style={{ flex: 1 }}>
                         {loading ? 'Creating...' : 'Create Account'}
