@@ -227,18 +227,6 @@ app.delete('/api/users/:uid', async (req, res) => {
   const { uid } = req.params;
 
   try {
-    // 0. Fetch user doc first to get Discord identifiers (for role removal)
-    let discordIdentifier = null;
-    if (db) {
-      const userDoc = await db.collection('Users').doc(uid).get();
-      if (userDoc.exists) {
-        const data = userDoc.data();
-        // Priority: discordId (numeric) > discordUsername (string tag)
-        discordIdentifier = data.discordId || data.discordUsername;
-        console.log(`🔍 Found Discord identifier for deletion: ${discordIdentifier}`);
-      }
-    }
-
     // 1. Delete from Firebase Auth (if they exist)
     try {
       await admin.auth().deleteUser(uid);
@@ -257,14 +245,7 @@ app.delete('/api/users/:uid', async (req, res) => {
       console.log(`📄 Deleted Firestore Doc: ${uid}`);
     }
 
-    // 3. Automatically remove Discord Role if an identifier was found
-    if (discordIdentifier) {
-      console.log(`📡 Triggering Discord role removal for: ${discordIdentifier}`);
-      // This function now handles both IDs and Username fallbacks
-      await removeGuildRole(discordIdentifier);
-    }
-
-    res.json({ success: true, message: 'User permanently removed and access revoked.' });
+    res.json({ success: true, message: 'User permanently removed.' });
   } catch (error) {
     console.error('❌ Deletion failed:', error.message);
     res.status(500).json({ success: false, message: error.message });

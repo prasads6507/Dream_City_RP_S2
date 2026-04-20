@@ -36,6 +36,7 @@ const Apply = () => {
     discordName: '', // Discord Global Name
     age: '',
     discordId: '', // Numeric ID
+    characterName: '', // New field
     rpExperience: '',
     departmentReason: '', // Why join PD/EMS/etc
     scenarioAnswer: '',
@@ -152,6 +153,7 @@ const Apply = () => {
         return false;
       }
       if (!formData.fullName.trim()) { setError('Name is required'); return false; }
+      if (!formData.characterName.trim()) { setError('Character Name is required'); return false; }
       const ageNum = parseInt(formData.age);
       if (isNaN(ageNum) || ageNum < 15) { setError('Minimum age for application is 15.'); return false; }
       if (appType !== 'civilian' && !formData.departmentReason.trim()) { 
@@ -389,6 +391,10 @@ const Apply = () => {
                         <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Age</label>
                         <input className="sc-input" type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} />
                       </div>
+                    </div>
+                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Character Name</label>
+                      <input className="sc-input" value={formData.characterName} onChange={e => setFormData({...formData, characterName: e.target.value})} placeholder="Firstname Lastname" />
                     </div>
                     {appType !== 'civilian' && (
                       <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
