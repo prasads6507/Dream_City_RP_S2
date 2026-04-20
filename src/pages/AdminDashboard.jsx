@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react';
-import { getAllApplications, processApplicationDecision, deleteApplications, subscribeToAppSettings, updateAppLock } from '../services/applicationService';
+import { 
+  getAllApplications, 
+  processApplicationDecision, 
+  deleteApplications, 
+  subscribeToAppSettings, 
+  updateAppLock,
+  updateApplicationMetadata 
+} from '../services/applicationService';
 import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFromBackend } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+
+const DEPT_RANKS = {
+  police: ['Chief of Police', 'Assistant Chief', 'Commander', 'Officer'],
+  ems: ['EMS Chief', 'Assistant Chief', 'Paramedic', 'EMT'],
+  mechanic: ['Shop Manager', 'Shift Lead', 'Expert Mechanic', 'Apprentice']
+};
 
 const AdminDashboard = () => {
   const { userData } = useAuth();
@@ -24,12 +37,11 @@ const AdminDashboard = () => {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '', role: 'admin' });
   
-  // Real-time app settings
-  const [appSettings, setAppSettings] = useState({
-    policeLocked: true,
-    emsLocked: true,
-    mechanicLocked: true
-  });
+  // New Scheduling State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [schedulingApp, setSchedulingApp] = useState(null);
+  const [scheduleData, setScheduleData] = useState({ date: '', time: '' });
+  const [selectedRank, setSelectedRank] = useState({}); // { appId: rank }
 
   // Pagination State
   const [staffPage, setStaffPage] = useState(1);
@@ -119,6 +131,64 @@ const AdminDashboard = () => {
       setTimeout(() => setToast(null), 3000);
     }
     setActionLoading(null);
+  };
+
+  const handleScheduleInterview = async (e) => {
+    e.preventDefault();
+    if (!schedulingApp) return;
+    setActionLoading(schedulingApp.id);
+    try {
+      await updateApplicationMetadata(schedulingApp.id, {
+        status: 'scheduled',
+        interviewDate: scheduleData.date,
+        interviewTime: scheduleData.time
+      });
+      setApplications(prev => prev.map(a => a.id === schedulingApp.id ? { 
+        ...a, 
+        status: 'scheduled', 
+        interviewDate: scheduleData.date,
+        interviewTime: scheduleData.time 
+      } : a));
+      setToast({ type: 'success', message: 'Interview scheduled successfully!' });
+      setShowScheduleModal(false);
+      setSchedulingApp(null);
+      setScheduleData({ date: '', time: '' });
+    } catch (err) {
+      setToast({ type: 'error', message: 'Failed to schedule interview.' });
+    }
+    setActionLoading(null);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleApproveWithRank = async (app) => {
+    const rank = selectedRank[app.id];
+    if (!rank) {
+      setToast({ type: 'error', message: 'Please select a rank first!' });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+    
+    setActionLoading(app.id);
+    try {
+      // Save rank to Firestore first
+      await updateApplicationMetadata(app.id, { jobRank: rank });
+      
+      // Complete decision (Approved)
+      const updatedApp = { ...app, jobRank: rank };
+      const result = await processApplicationDecision(app.id, 'approved', updatedApp);
+      
+      setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved', jobRank: rank } : a));
+      
+      if (!result.discord) {
+        setToast({ type: 'warning', message: `Approved as ${rank}, but Discord failed.` });
+      } else {
+        setToast({ type: 'success', message: `Approved as ${rank} and Discord role assigned!` });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Approval failed.' });
+    }
+    setActionLoading(null);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleDelete = async (id) => {
@@ -706,16 +776,85 @@ const AdminDashboard = () => {
                       <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.characterBackstory}</div>
                     </div>
 
-                    {app.status === 'pending' && (
-                      <div style={{ display: 'flex', gap: '16px' }}>
-                        <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
-                          {actionLoading === app.id ? 'Processing...' : '✓ Approve Application'}
-                        </button>
-                        <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
-                          {actionLoading === app.id ? 'Processing...' : '✕ Reject Application'}
-                        </button>
-                      </div>
-                    )}
+                    {/* Action Flow */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      {/* Interview Info Display if Scheduled */}
+                      {app.status === 'scheduled' && (
+                        <div style={{ 
+                          background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.1)',
+                          padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                          <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase' }}>Scheduled Interview</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{app.interviewDate} @ {app.interviewTime}</div>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setSchedulingApp(app);
+                              setScheduleData({ date: app.interviewDate || '', time: app.interviewTime || '' });
+                              setShowScheduleModal(true);
+                            }}
+                            style={{ background: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Status-Based Actions */}
+                      {app.status === 'pending' && (
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                          {['police', 'ems', 'mechanic'].includes(app.type) && (
+                            <button 
+                              onClick={() => {
+                                setSchedulingApp(app);
+                                setShowScheduleModal(true);
+                              }} 
+                              disabled={actionLoading === app.id} 
+                              className="sc-btn" 
+                              style={{ flex: 1, padding: '16px', background: 'rgba(6, 182, 212, 1)', border: 'none' }}
+                            >
+                              🗓️ Schedule Interview
+                            </button>
+                          )}
+                          <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
+                            {actionLoading === app.id ? 'Processing...' : '✓ Approve'}
+                          </button>
+                          <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
+                            {actionLoading === app.id ? 'Processing...' : '✕ Reject'}
+                          </button>
+                        </div>
+                      )}
+
+                      {app.status === 'scheduled' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Select Job Position</div>
+                            <select 
+                              value={selectedRank[app.id] || ''} 
+                              onChange={(e) => setSelectedRank(prev => ({ ...prev, [app.id]: e.target.value }))}
+                              style={{
+                                width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                                borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none'
+                              }}
+                            >
+                              <option value="">-- Choose Level --</option>
+                              {(DEPT_RANKS[app.type] || []).map(r => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div style={{ display: 'flex', gap: '16px' }}>
+                            <button onClick={() => handleApproveWithRank(app)} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
+                              {actionLoading === app.id ? 'Processing...' : `✓ Confirm & Approve as ${selectedRank[app.id] || '...'}`}
+                            </button>
+                            <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
+                              {actionLoading === app.id ? 'Processing...' : '✕ Reject'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -960,6 +1099,48 @@ const AdminDashboard = () => {
                         {loading ? 'Creating...' : 'Create Account'}
                       </button>
                       <button type="button" onClick={() => setShowAddAdmin(false)} className="sc-btn-outline" style={{ flex: 1 }}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Interview Scheduling Modal */}
+            {showScheduleModal && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+              }}>
+                <div className="sc-card" style={{ maxWidth: '450px', width: '90%', padding: '40px' }}>
+                  <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '8px' }}>Schedule Interview</h2>
+                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '24px' }}>
+                    Setting up interview for <strong>{schedulingApp?.discordName || schedulingApp?.fullName}</strong>
+                  </p>
+                  
+                  <form onSubmit={handleScheduleInterview} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Date</label>
+                      <input 
+                        type="date" className="sc-input" required
+                        value={scheduleData.date} onChange={e => setScheduleData({...scheduleData, date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Time</label>
+                      <input 
+                        type="time" className="sc-input" required
+                        value={scheduleData.time} onChange={e => setScheduleData({...scheduleData, time: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                      <button type="submit" disabled={actionLoading === schedulingApp?.id} className="sc-btn" style={{ flex: 1 }}>
+                        {actionLoading === schedulingApp?.id ? 'Saving...' : '💾 Save Schedule'}
+                      </button>
+                      <button type="button" onClick={() => { setShowScheduleModal(false); setSchedulingApp(null); }} className="sc-btn-outline" style={{ flex: 1 }}>
                         Cancel
                       </button>
                     </div>

@@ -28,6 +28,14 @@ const StatusBadge = ({ status }) => {
       border: 'rgba(220, 38, 38, 0.3)',
       color: '#dc2626',
       glow: '0 0 15px rgba(220, 38, 38, 0.2)',
+    },
+    scheduled: {
+      label: '🗓️ Scheduled',
+      bg: 'rgba(6, 182, 212, 0.12)',
+      border: 'rgba(6, 182, 212, 0.3)',
+      color: '#06b6d4',
+      glow: '0 0 15px rgba(6, 182, 212, 0.2)',
+      pulse: true
     }
   };
 

@@ -166,6 +166,19 @@ export const processApplicationDecision = async (appId, status, appData) => {
 };
 
 /**
+ * Update arbitrary metadata for an application (Interview date, Rank, etc.)
+ * @param {string} appId 
+ * @param {Object} metadata - Fields to update
+ */
+export const updateApplicationMetadata = async (appId, metadata) => {
+  const docRef = doc(db, COLLECTION_NAME, appId);
+  await updateDoc(docRef, {
+    ...metadata,
+    updatedAt: serverTimestamp()
+  });
+};
+
+/**
  * Delete one or more applications
  * @param {string[]} ids 
  */
