@@ -1114,47 +1114,49 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* Interview Scheduling Modal */}
-            {showScheduleModal && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-                background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
-              }}>
-                <div className="sc-card" style={{ maxWidth: '450px', width: '90%', padding: '40px' }}>
-                  <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '8px' }}>Schedule Interview</h2>
-                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '24px' }}>
-                    Setting up interview for <strong>{schedulingApp?.discordName || schedulingApp?.fullName}</strong>
-                  </p>
-                  
-                  <form onSubmit={handleScheduleInterview} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Date</label>
-                      <input 
-                        type="date" className="sc-input" required
-                        value={scheduleData.date} onChange={e => setScheduleData({...scheduleData, date: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Time</label>
-                      <input 
-                        type="time" className="sc-input" required
-                        value={scheduleData.time} onChange={e => setScheduleData({...scheduleData, time: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                      <button type="submit" disabled={actionLoading === schedulingApp?.id} className="sc-btn" style={{ flex: 1 }}>
-                        {actionLoading === schedulingApp?.id ? 'Saving...' : '💾 Save Schedule'}
-                      </button>
-                      <button type="button" onClick={() => { setShowScheduleModal(false); setSchedulingApp(null); }} className="sc-btn-outline" style={{ flex: 1 }}>
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
             )}
+          </div>
+        )}
+
+        {/* Interview Scheduling Modal */}
+        {showScheduleModal && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000
+          }}>
+            <div className="sc-card" style={{ maxWidth: '450px', width: '90%', padding: '40px' }}>
+              <h2 style={{ fontFamily: '"Outfit", sans-serif', fontWeight: 900, fontSize: '1.8rem', marginBottom: '8px' }}>Schedule Interview</h2>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '24px' }}>
+                Setting up interview for <strong>{schedulingApp?.discordName || schedulingApp?.fullName}</strong>
+              </p>
+              
+              <form onSubmit={handleScheduleInterview} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Date</label>
+                  <input 
+                    type="date" className="sc-input" required
+                    value={scheduleData.date} onChange={e => setScheduleData({...scheduleData, date: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Time</label>
+                  <input 
+                    type="time" className="sc-input" required
+                    value={scheduleData.time} onChange={e => setScheduleData({...scheduleData, time: e.target.value})}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                  <button type="submit" disabled={actionLoading === schedulingApp?.id} className="sc-btn" style={{ flex: 1 }}>
+                    {actionLoading === schedulingApp?.id ? 'Saving...' : '💾 Save Schedule'}
+                  </button>
+                  <button type="button" onClick={() => { setShowScheduleModal(false); setSchedulingApp(null); }} className="sc-btn-outline" style={{ flex: 1 }}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>
