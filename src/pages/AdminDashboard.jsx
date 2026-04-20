@@ -794,25 +794,35 @@ const AdminDashboard = () => {
 
                     {/* Action Flow */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      {/* Interview Info Display if Scheduled */}
+                      {/* Interview Info Overlay */}
                       {app.status === 'scheduled' && (
                         <div style={{ 
-                          background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.1)',
-                          padding: '20px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                          background: 'rgba(6, 182, 212, 0.05)', 
+                          border: '1px solid rgba(6, 182, 212, 0.2)', 
+                          borderRadius: '12px', padding: '16px', marginBottom: '20px',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                         }}>
-                          <div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase' }}>Scheduled Interview</div>
-                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{app.interviewDate} @ {app.interviewTime}</div>
+                          <div style={{ display: 'flex', gap: '20px' }}>
+                            <div>
+                              <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>📅 Interview Date</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewDate || 'Not set'}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>⏰ Interview Time</div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewTime || 'TBD'}</div>
+                            </div>
                           </div>
                           <button 
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSchedulingApp(app);
                               setScheduleData({ date: app.interviewDate || '', time: app.interviewTime || '' });
                               setShowScheduleModal(true);
                             }}
-                            style={{ background: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800 }}
+                            className="sc-btn-outline"
+                            style={{ padding: '8px 16px', fontSize: '0.7rem', borderColor: 'rgba(6, 182, 212, 0.3)', color: '#06b6d4', height: 'fit-content' }}
                           >
-                            Edit
+                            ✏️ Edit Schedule
                           </button>
                         </div>
                       )}
@@ -1138,25 +1148,34 @@ const AdminDashboard = () => {
                 Setting up interview for <strong>{schedulingApp?.discordName || schedulingApp?.fullName}</strong>
               </p>
               
-              <form onSubmit={handleScheduleInterview} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Date</label>
+              <form onSubmit={handleScheduleInterview} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ position: 'relative' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#06b6d4', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' }}>
+                    📅 Select Date
+                  </label>
                   <input 
                     type="date" className="sc-input" required
+                    style={{ background: 'rgba(6, 182, 212, 0.05)', borderColor: 'rgba(6, 182, 212, 0.2)', paddingLeft: '45px' }}
                     value={scheduleData.date} onChange={e => setScheduleData({...scheduleData, date: e.target.value})}
                   />
+                  <span style={{ position: 'absolute', left: '16px', bottom: '14px', fontSize: '1.2rem', opacity: 0.6 }}>🗓️</span>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#A78BFA', textTransform: 'uppercase', marginBottom: '8px' }}>Interview Time</label>
+
+                <div style={{ position: 'relative' }}>
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#06b6d4', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' }}>
+                    ⏰ Select Time
+                  </label>
                   <input 
                     type="time" className="sc-input" required
+                    style={{ background: 'rgba(6, 182, 212, 0.05)', borderColor: 'rgba(6, 182, 212, 0.2)', paddingLeft: '45px' }}
                     value={scheduleData.time} onChange={e => setScheduleData({...scheduleData, time: e.target.value})}
                   />
+                  <span style={{ position: 'absolute', left: '16px', bottom: '14px', fontSize: '1.2rem', opacity: 0.6 }}>🕒</span>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                  <button type="submit" disabled={actionLoading === schedulingApp?.id} className="sc-btn" style={{ flex: 1 }}>
-                    {actionLoading === schedulingApp?.id ? 'Saving...' : '💾 Save Schedule'}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                  <button type="submit" disabled={actionLoading === schedulingApp?.id} className="sc-btn" style={{ flex: 1, background: '#06b6d4' }}>
+                    {actionLoading === schedulingApp?.id ? 'Saving...' : '💾 Confirm Schedule'}
                   </button>
                   <button type="button" onClick={() => { setShowScheduleModal(false); setSchedulingApp(null); }} className="sc-btn-outline" style={{ flex: 1 }}>
                     Cancel
