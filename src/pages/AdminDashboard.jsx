@@ -37,6 +37,13 @@ const AdminDashboard = () => {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ email: '', password: '', name: '', discordUsername: '', role: 'admin' });
   
+  // Real-time app settings
+  const [appSettings, setAppSettings] = useState({
+    policeLocked: true,
+    emsLocked: true,
+    mechanicLocked: true
+  });
+
   // New Scheduling State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [schedulingApp, setSchedulingApp] = useState(null);
