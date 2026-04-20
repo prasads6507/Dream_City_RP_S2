@@ -116,8 +116,9 @@ export const getAllApplications = async () => {
  * @param {string} appId 
  * @param {string} status 
  * @param {Object} appData - Full application data for notification
+ * @param {Object} metadata - Optional additional info (jobRank, interviewDate, etc.)
  */
-export const processApplicationDecision = async (appId, status, appData) => {
+export const processApplicationDecision = async (appId, status, appData, metadata = {}) => {
   // 1. Update Firestore
   const docRef = doc(db, COLLECTION_NAME, appId);
   await updateDoc(docRef, {
@@ -141,7 +142,8 @@ export const processApplicationDecision = async (appId, status, appData) => {
       discordId: appData.discordId,
       status: status,
       name: appData.discordName || appData.fullName,
-      type: appData.type
+      type: appData.type,
+      ...metadata
     });
     result.discord = notifyRes.data.success;
   } catch (error) {

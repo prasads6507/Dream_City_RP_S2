@@ -101,33 +101,53 @@ async function removeGuildRole(userInfo) {
 // GIF URLs for approved/rejected (Direct Image URLs for discord embeds)
 const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
 const REJECTED_GIF = 'https://www.image2url.com/r2/default/images/1776573467268-e893164b-4c67-4752-9f05-091137e5f6a1.gif';
+const SCHEDULED_GIF = 'https://gifdb.com/images/high/calendar-appointment-scheduling-8v7m3m8p9n5f9p5p.gif';
 
 /**
  * Creates the standardized embed for both DM and Channel notifications
  */
-function createStatusEmbed(type, status, name, discordId) {
+function createStatusEmbed(type, status, name, discordId, metadata = {}) {
   const isApproved = status === 'approved';
+  const isScheduled = status === 'scheduled';
+  
   const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
-  const gifUrl = isApproved ? APPROVED_GIF : REJECTED_GIF;
-  const statusEmoji = isApproved ? '✅' : '❌';
-  const statusText = isApproved ? 'APPROVED' : 'REJECTED';
-  const color = isApproved ? 0x22c55e : 0xef4444;
+  const gifUrl = isApproved ? APPROVED_GIF : isScheduled ? SCHEDULED_GIF : REJECTED_GIF;
+  const statusEmoji = isApproved ? '✅' : isScheduled ? '🗓️' : '❌';
+  const statusText = isApproved ? 'APPROVED' : isScheduled ? 'SCHEDULED' : 'REJECTED';
+  const color = isApproved ? 0x22c55e : isScheduled ? 0x06b6d4 : 0xef4444;
 
-  const description = isApproved
-    ? `**${name}**! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**.\n\nWelcome to the Dream City Roleplay S2! 🎉`
-    : `**${name}**, we regret to inform you that your **${typeLabel}** application for **Dream City RP** has been **REJECTED**.\n\nYou may reapply in the future.`;
+  let description = `**${name}**, your **${typeLabel}** application for **Dream City RP** has been **${statusText}**.`;
+
+  if (isApproved) {
+    const rankText = metadata.jobRank ? ` as a **${metadata.jobRank}**` : '';
+    description = `**${name}**! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**${rankText}.\n\nWelcome to the team! 🎉`;
+  } else if (isScheduled) {
+    description = `**${name}**, your **${typeLabel}** application has reached the next stage! We have **SCHEDULED AN INTERVIEW** for you.\n\n📅 **Date**: ${metadata.interviewDate}\n⏰ **Time**: ${metadata.interviewTime || 'TBD'}\n\nPlease be present in the waiting room at the scheduled time.`;
+  } else {
+    description = `**${name}**, we regret to inform you that your **${typeLabel}** application has been **REJECTED**. You may reapply in the future.`;
+  }
+
+  const fields = [
+    { name: '👤 Applicant', value: `<@${discordId}>`, inline: true },
+    { name: '📋 Department', value: typeLabel, inline: true },
+    { name: '📌 Status', value: statusText, inline: true }
+  ];
+
+  if (isApproved && metadata.jobRank) {
+    fields.push({ name: '🎖️ Position', value: metadata.jobRank, inline: true });
+  }
+
+  if (isScheduled) {
+    fields.push({ name: '📅 Interview', value: `${metadata.interviewDate} @ ${metadata.interviewTime}`, inline: false });
+  }
 
   return {
     title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
     description: description,
     color: color,
-    fields: [
-      { name: '👤 Applicant', value: `<@${discordId}>`, inline: true },
-      { name: '📋 Department', value: typeLabel, inline: true },
-      { name: '📌 Status', value: statusText, inline: true }
-    ],
+    fields: fields,
     image: { url: gifUrl },
-    footer: { text: 'Dream City Roleplay • Staff Management' },
+    footer: { text: 'Dream City Roleplay • Recruitment System' },
     timestamp: new Date().toISOString()
   };
 }
@@ -135,10 +155,11 @@ function createStatusEmbed(type, status, name, discordId) {
 /**
  * Send a DM to a user by their Discord ID
  * @param {string} discordId - The user ID or username#1234 (ID is more reliable)
- * @param {string} status - 'approved' or 'rejected'
+ * @param {string} status - 'approved', 'rejected', or 'scheduled'
  * @param {string} name - Player name for personalization
+ * @param {Object} metadata - Optional interview/rank details
  */
-async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
+async function sendStatusDM(discordId, status, name, type = 'Whitelist', metadata = {}) {
   try {
     const user = await client.users.fetch(discordId);
     
@@ -147,7 +168,7 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist') {
       return { success: false, error: 'User not found' };
     }
 
-    const embed = createStatusEmbed(type, status, name, discordId);
+    const embed = createStatusEmbed(type, status, name, discordId, metadata);
     await user.send({ embeds: [embed] });
     
     console.log(`✉️ DM Embed sent to ${user.tag} (${status})`);
@@ -171,11 +192,12 @@ const DEPARTMENT_CHANNELS = {
 /**
  * Send a notification to the department-specific Discord channel
  * @param {string} type - 'police', 'ems', 'mechanic', or 'civilian'
- * @param {string} status - 'approved' or 'rejected'
+ * @param {string} status - 'approved', 'rejected', or 'scheduled'
  * @param {string} name - Applicant name
  * @param {string} discordId - Applicant Discord ID
+ * @param {Object} metadata - Optional interview/rank details
  */
-async function sendChannelNotification(type, status, name, discordId) {
+async function sendChannelNotification(type, status, name, discordId, metadata = {}) {
   try {
     const channelId = DEPARTMENT_CHANNELS[type];
     if (!channelId) {
@@ -189,7 +211,7 @@ async function sendChannelNotification(type, status, name, discordId) {
       return { success: false, error: 'Channel not found' };
     }
 
-    const embed = createStatusEmbed(type, status, name, discordId);
+    const embed = createStatusEmbed(type, status, name, discordId, metadata);
     await channel.send({ embeds: [embed] });
     
     console.log(`📢 Channel notification sent to #${channel.name} for ${name} (${status})`);

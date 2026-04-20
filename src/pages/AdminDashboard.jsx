@@ -145,18 +145,27 @@ const AdminDashboard = () => {
     if (!schedulingApp) return;
     setActionLoading(schedulingApp.id);
     try {
+      // 1. Update Metadata in Firestore & Notify via Discord
+      const metadata = { 
+        interviewDate: scheduleData.date, 
+        interviewTime: scheduleData.time 
+      };
+
       await updateApplicationMetadata(schedulingApp.id, {
         status: 'scheduled',
-        interviewDate: scheduleData.date,
-        interviewTime: scheduleData.time
+        ...metadata
       });
+
+      // 2. Trigger Discord Notification for Scheduling
+      await processApplicationDecision(schedulingApp.id, 'scheduled', schedulingApp, metadata);
+
       setApplications(prev => prev.map(a => a.id === schedulingApp.id ? { 
         ...a, 
         status: 'scheduled', 
-        interviewDate: scheduleData.date,
-        interviewTime: scheduleData.time 
+        ...metadata
       } : a));
-      setToast({ type: 'success', message: 'Interview scheduled successfully!' });
+
+      setToast({ type: 'success', message: 'Interview scheduled and Discord notified!' });
       setShowScheduleModal(false);
       setSchedulingApp(null);
       setScheduleData({ date: '', time: '' });
@@ -177,12 +186,12 @@ const AdminDashboard = () => {
     
     setActionLoading(app.id);
     try {
-      // Save rank to Firestore first
+      // 1. Save rank to Firestore first
       await updateApplicationMetadata(app.id, { jobRank: rank });
       
-      // Complete decision (Approved)
-      const updatedApp = { ...app, jobRank: rank };
-      const result = await processApplicationDecision(app.id, 'approved', updatedApp);
+      // 2. Complete decision (Approved) + Notify with Rank
+      const metadata = { jobRank: rank };
+      const result = await processApplicationDecision(app.id, 'approved', app, metadata);
       
       setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved', jobRank: rank } : a));
       
