@@ -1,9 +1,15 @@
 const Team = () => {
   const staff = [
-    { name: 'DCRP || AGENT', role: 'Admin', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=agent' },
-    { name: 'DCRP || ALPHA', role: 'Developer 1', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=alpha' },
-    { name: 'DCRP || OMEGA', role: 'Developer 2', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=omega' },
-    { name: 'DCRP || AX10R', role: 'Developer 3', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=ax10r' },
+    { name: 'DCRP || CAPTAIN', role: 'FOUNDER', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=captain' },
+    { name: 'DCRP || AGENT', role: 'ADMIN', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=agent' },
+    { name: 'DCRP || DEV', role: 'ADMIN', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=dev' },
+    { name: 'DCRP || ALPHA', role: 'DEVELOP', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=alpha' },
+    { name: 'DCRP || OMEGA', role: 'DEVELOP', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=omega' },
+    { name: 'DCRP || AX10R', role: 'DC DEV & STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=ax10r' },
+    { name: 'DCRP || COMMANDER', role: 'DC DEV & STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=commander' },
+    { name: 'DCRP || PHANTOM', role: 'DC STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=phantom' },
+    { name: 'DCRP || MAXX', role: 'DC TICKET STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=maxx' },
+    { name: 'DCRP || DEVIL', role: 'DC TICKET STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=devil' },
   ];
 
   return (
