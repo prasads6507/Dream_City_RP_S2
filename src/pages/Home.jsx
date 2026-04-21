@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ServerStatus from '../components/ServerStatus';
 
 const Home = () => {
   const [isMuted, setIsMuted] = useState(true);
@@ -220,6 +221,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+      
+      <ServerStatus />
 
       {/* ===== GALLERY SECTION ===== */}
       <section style={{ padding: '100px 0', position: 'relative' }}>
