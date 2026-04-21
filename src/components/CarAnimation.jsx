@@ -7,15 +7,15 @@ const CarAnimation = () => {
       width: '100%',
       height: '60px',
       pointerEvents: 'none',
-      zIndex: 0,
+      zIndex: 5,
       overflow: 'hidden',
-      opacity: 0.4
+      opacity: 1.0
     }}>
       <div style={{
         position: 'absolute',
         bottom: 0,
-        width: '180px',
-        animation: 'drive 22s linear infinite',
+        width: '250px',
+        animation: 'drive 18s linear infinite',
       }}>
         <img 
           src="/images/neon-car.png" 
@@ -25,7 +25,7 @@ const CarAnimation = () => {
             height: 'auto',
             display: 'block',
             mixBlendMode: 'screen', // Ensures absolute black blends perfectly
-            filter: 'drop-shadow(0 0 8px rgba(167, 139, 250, 0.4))'
+            filter: 'drop-shadow(0 0 15px rgba(167, 139, 250, 0.8))'
           }}
         />
       </div>
@@ -33,10 +33,10 @@ const CarAnimation = () => {
       <style>{`
         @keyframes drive {
           from {
-            transform: translateX(-150px);
+            transform: translateX(-400px);
           }
           to {
-            transform: translateX(calc(100vw + 150px));
+            transform: translateX(calc(100vw + 400px));
           }
         }
       `}</style>
