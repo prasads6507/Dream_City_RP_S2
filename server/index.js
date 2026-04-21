@@ -163,17 +163,17 @@ app.post('/api/notify-user', async (req, res) => {
  * POST /api/revoke-role
  */
 app.post('/api/revoke-role', async (req, res) => {
-  const { discordId } = req.body;
-  console.log(`🔴 Received /api/revoke-role: ID=${discordId}`);
+  const { discordId, type } = req.body;
+  console.log(`🔴 Received /api/revoke-role: ID=${discordId}, Type=${type}`);
 
-  if (!discordId) {
-    return res.status(400).json({ success: false, message: 'Missing discordId' });
+  if (!discordId || !type) {
+    return res.status(400).json({ success: false, message: 'Missing discordId or type' });
   }
 
   try {
-    const result = await removeGuildRole(discordId);
+    const result = await removeDepartmentRoles(discordId, type);
     if (result.success) {
-      res.json({ success: true, message: 'Discord role revoked successfully' });
+      res.json({ success: true, message: `Discord roles for ${type} revoked successfully` });
     } else {
       res.status(500).json({ success: false, message: result.error });
     }

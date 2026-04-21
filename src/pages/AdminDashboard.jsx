@@ -222,6 +222,18 @@ const AdminDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) return;
     setActionLoading(id);
     try {
+      // Surgical Role Removal on Deletion
+      const app = applications.find(a => a.id === id);
+      if (app && app.status === 'approved' && app.discordId && ['police', 'ems', 'mechanic'].includes(app.type)) {
+        try {
+          let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+          baseUrl = baseUrl.replace(/\/$/, '');
+          await axios.post(`${baseUrl}/api/revoke-role`, { discordId: app.discordId, type: app.type });
+          console.log(`✅ ${app.type} roles surgically revoked for`, app.discordId);
+        } catch (revokeErr) {
+          console.warn('⚠️ Failed to revoke Discord roles:', revokeErr.message);
+        }
+      }
       await deleteApplications([id]);
       setApplications(prev => prev.filter(a => a.id !== id));
       setSelectedIds(prev => {
@@ -243,6 +255,19 @@ const AdminDashboard = () => {
     if (!window.confirm(`Are you sure you want to delete ${ids.length} applications? This action cannot be undone.`)) return;
     setLoading(true);
     try {
+      // Surgical Role Removal on Bulk Deletion
+      let baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+      baseUrl = baseUrl.replace(/\/$/, '');
+      for (const id of ids) {
+        const app = applications.find(a => a.id === id);
+        if (app && app.status === 'approved' && app.discordId && ['police', 'ems', 'mechanic'].includes(app.type)) {
+          try {
+            await axios.post(`${baseUrl}/api/revoke-role`, { discordId: app.discordId, type: app.type });
+          } catch (revokeErr) {
+            console.warn(`⚠️ Failed to revoke ${app.type} roles for ${app.discordId}:`, revokeErr.message);
+          }
+        }
+      }
       await deleteApplications(ids);
       setApplications(prev => prev.filter(a => !selectedIds.has(a.id)));
       setSelectedIds(new Set());
