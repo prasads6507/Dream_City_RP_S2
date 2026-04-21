@@ -138,9 +138,18 @@ app.post('/api/notify-user', async (req, res) => {
   
   // Assign Discord roles if approved
   if (status === 'approved' && DEPARTMENT_ROLES[type]) {
-    const baseRole = DEPARTMENT_ROLES[type].base;
-    const rankRole = DEPARTMENT_ROLES[type].ranks[jobRank];
-    const rolesToAssign = [baseRole, rankRole].filter(id => !!id);
+    const config = DEPARTMENT_ROLES[type];
+    let rolesToAssign = [];
+    
+    if (typeof config === 'string') {
+      // Simple role ID (e.g., civilian)
+      rolesToAssign = [config];
+    } else {
+      // Complex role object with ranks (e.g., police, ems, mechanic)
+      const baseRole = config.base;
+      const rankRole = config.ranks ? config.ranks[jobRank] : null;
+      rolesToAssign = [baseRole, rankRole].filter(id => !!id);
+    }
     
     if (rolesToAssign.length > 0) {
       await assignGuildRole(discordId, rolesToAssign);

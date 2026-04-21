@@ -11,7 +11,7 @@ const client = new Client({
 });
 
 const DEPARTMENT_ROLES = {
-  citizen: '1493620549883003031',
+  civilian: '1493620549883003031',
   police: {
     base: '1493620510465200230',
     ranks: {
@@ -124,7 +124,13 @@ async function removeDepartmentRoles(userInfo, type) {
 
     // Identify all roles that belong to this department
     const deptConfig = DEPARTMENT_ROLES[type];
-    const rolesToRemove = [deptConfig.base, ...Object.values(deptConfig.ranks)];
+    let rolesToRemove = [];
+    
+    if (typeof deptConfig === 'string') {
+      rolesToRemove = [deptConfig];
+    } else {
+      rolesToRemove = [deptConfig.base, ...Object.values(deptConfig.ranks || {})];
+    }
     
     console.log(`⏳ Removing ${type} department roles from ${member.user.tag}...`);
     await member.roles.remove(rolesToRemove.filter(id => !!id));
