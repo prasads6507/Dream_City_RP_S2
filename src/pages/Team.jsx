@@ -7,9 +7,9 @@ const Team = () => {
     { name: 'DCRP || OMEGA', role: 'DEVELOP', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=omega' },
     { name: 'DCRP || AX10R', role: 'DC DEV & STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=ax10r' },
     { name: 'DCRP || COMMANDER', role: 'DC DEV & STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=commander' },
-    { name: 'DCRP || PHANTOM', role: 'DC STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=phantom' },
+    { name: 'DCRP || ROMEO', role: 'DC STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=phantom' },
     { name: 'DCRP || MAXX', role: 'DC TICKET STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=maxx' },
-    { name: 'DCRP || DEVIL', role: 'DC TICKET STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=devil' },
+    { name: 'DCRP || PETER', role: 'DC TICKET STAFF', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=devil' },
   ];
 
   return (

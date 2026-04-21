@@ -7,7 +7,7 @@ const Store = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: '#000',
+      background: 'transparent',
       position: 'relative',
       overflow: 'hidden'
     }}>
