@@ -59,6 +59,8 @@ const Footer = () => {
                 { label: 'Home', path: '/' },
                 { label: 'Rules', path: '/rules' },
                 { label: 'Team', path: '/team' },
+                { label: 'Status', path: '/status' },
+                { label: 'Store', path: '/store' },
                 { label: 'Applications', path: '/apply' },
               ].map(link => (
                 <Link key={link.label} to={link.path} style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500, transition: 'color 0.2s' }}
