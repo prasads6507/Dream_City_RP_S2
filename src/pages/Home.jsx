@@ -38,7 +38,7 @@ const Home = () => {
   }, []);
 
   const galleryImages = [
-    { src: '/images/gallery-1.png', label: 'The Crew' },
+    { src: 'https://www.image2url.com/r2/default/videos/1776796982326-8888d4ac-a2b0-4f70-98b9-2bb92ec15cef.mp4', label: 'The Crew', type: 'video' },
     { src: '/images/gallery-2.png', label: 'In Pursuit' },
     { src: '/images/gallery-3.png', label: 'City Lights' },
     { src: '/images/gallery-4.png', label: 'Boardwalk Life' },
@@ -275,19 +275,32 @@ const Home = () => {
                     borderRadius: '16px',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.querySelector('img').style.transform = 'scale(1.08)';
+                    const target = e.currentTarget.querySelector(img.type === 'video' ? 'video' : 'img');
+                    if (target) target.style.transform = 'scale(1.08)';
                     e.currentTarget.querySelector('.overlay').style.opacity = '1';
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.querySelector('img').style.transform = 'scale(1)';
+                    const target = e.currentTarget.querySelector(img.type === 'video' ? 'video' : 'img');
+                    if (target) target.style.transform = 'scale(1)';
                     e.currentTarget.querySelector('.overlay').style.opacity = '0';
                   }}
                 >
-                  <img
-                    src={img.src}
-                    alt={img.label}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', display: 'block' }}
-                  />
+                  {img.type === 'video' ? (
+                    <video
+                      src={img.src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', display: 'block' }}
+                    />
+                  ) : (
+                    <img
+                      src={img.src}
+                      alt={img.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', display: 'block' }}
+                    />
+                  )}
                   <div className="overlay" style={{
                     position: 'absolute', inset: 0,
                     background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
