@@ -46,7 +46,7 @@ const DEPARTMENT_ROLES = {
     }
   },
   mechanic: {
-    base: '1493620548834689075',
+    base: '1493620542824124558',
     ranks: {
       'Mechanic Chief': '1493620541557571706',
       'Garage Manager': '1493620544107708477',
