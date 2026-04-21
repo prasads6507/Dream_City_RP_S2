@@ -38,7 +38,7 @@ const Home = () => {
   }, []);
 
   const galleryImages = [
-    { src: 'https://www.image2url.com/r2/default/videos/1776796982326-8888d4ac-a2b0-4f70-98b9-2bb92ec15cef.mp4', label: 'The Crew', type: 'video' },
+    { src: 'https://www.image2url.com/r2/default/videos/1776797253998-c5271f48-0d3d-4065-8a08-85aa5a5e42ae.mp4', label: 'The Crew', type: 'video' },
     { src: '/images/gallery-2.png', label: 'In Pursuit' },
     { src: '/images/gallery-3.png', label: 'City Lights' },
     { src: '/images/gallery-4.png', label: 'Boardwalk Life' },
@@ -269,7 +269,7 @@ const Home = () => {
                     ...gridStyles[i],
                     overflow: 'hidden',
                     position: 'relative',
-                    aspectRatio: i === 0 ? '2/1' : '16/10',
+                    aspectRatio: i === 0 ? '16/9' : '16/10',
                     cursor: 'pointer',
                     padding: 0,
                     borderRadius: '16px',
