@@ -45,11 +45,11 @@ const Status = () => {
             </div>
             <div>
               <h3 style={{ fontFamily: '"Outfit", sans-serif', color: '#A78BFA', marginBottom: '16px', fontSize: '1.2rem', fontWeight: 800 }}>
-                Scheduled Maintenance
+                Server Support
               </h3>
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.7 }}>
-                Regular server restarts occur daily at 12:00 AM and 12:00 PM IST to ensure optimal performance. 
-                Expect a brief 5-minute downtime during these periods.
+                Need help or found a bug? Join our official Discord community and open a support ticket. 
+                Our team is available 24/7 to assist with any in-game or technical issues.
               </p>
             </div>
           </div>
