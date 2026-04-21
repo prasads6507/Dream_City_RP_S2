@@ -87,7 +87,7 @@ const Apply = () => {
   const departments = [
     { 
       id: 'civilian', 
-      label: 'Allowlist Application', 
+      label: 'Whitelist Application', 
       desc: 'Submit your application to become a citizen of Dream City.',
       icon: '🏙️', 
       badge: 'SEASON 2', 

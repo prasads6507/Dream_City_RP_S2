@@ -10,6 +10,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Rules from './pages/Rules';
 import Team from './pages/Team';
 import Store from './pages/Store';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/rules" element={<Rules />} />
           <Route path="/team" element={<Team />} />
           <Route path="/store" element={<Store />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           
           {/* Public application route (No Login Required) */}
           <Route path="/apply" element={<Apply />} />

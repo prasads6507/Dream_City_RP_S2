@@ -106,11 +106,12 @@ const Footer = () => {
             © {new Date().getFullYear()} DCRP S2. Not affiliated with Rockstar Games.
           </span>
           <div style={{ display: 'flex', gap: '24px' }}>
-            {['Privacy Policy', 'Terms of Service'].map(t => (
-              <a key={t} href="#" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.65rem', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {t}
-              </a>
-            ))}
+            <Link to="/privacy" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.65rem', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Privacy Policy
+            </Link>
+            <Link to="/terms" style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.65rem', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>
