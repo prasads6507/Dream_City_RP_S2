@@ -10,7 +10,54 @@ const client = new Client({
   ]
 });
 
-const ROLE_ID = '1493620549883003031';
+const DEPARTMENT_ROLES = {
+  citizen: '1493620549883003031',
+  police: {
+    base: '1493620510465200230',
+    ranks: {
+      'CADET': '1493620525283676190',
+      'SOLO CADET': '1493620524402872510',
+      'PROBATIONARY OFFICER': '1493620517154852905',
+      'OFFICER': '1493620514403389571',
+      'SENIOR OFFICER': '1493620513845547069',
+      'SENIOR LEAD OFFICER': '1493620512356696215',
+      'LANCE CORPORAL': '1495801541054042112',
+      'CORPORAL': '1495801541905612870',
+      'SERGEANT': '1495801542748406073',
+      'HEAD SERGEANT': '1495801567222435942',
+      'LIEUTENANT': '1495801570250461367',
+      'CAPTAIN': '1495801714476060672',
+      'COMMANDER': '1495801714937167962',
+      'ASSISTANT CHIEF': '1493620509315698803',
+      'CHIEF': '1493620507889897473'
+    }
+  },
+  ems: {
+    base: '1493620529309945876',
+    ranks: {
+      'EMS Chief': '1493620527238221984',
+      'EMS Co Chief': '1493620528232005814',
+      'Paramedic': '1493620530362974360',
+      'Surgeon': '1493620531231064276',
+      'Doctor': '1493620532719910963',
+      'Sr Doctor': '1493620537933435060',
+      'Jr Doctor': '1493620538868891740',
+      'Trainee': '1493620539950891010'
+    }
+  },
+  mechanic: {
+    base: '1493620548834689075',
+    ranks: {
+      'Mechanic Chief': '1493620541557571706',
+      'Garage Manager': '1493620544107708477',
+      'Asst Manager': '1493620544833191998',
+      'Sr Mechanic': '1493620546418643086',
+      'Jr Mechanic': '1493620547525808198',
+      'Recruit': '1493620548834689075'
+    }
+  }
+};
+
 const GUILD_ID = process.env.DISCORD_GUILD_ID;
 
 client.once('ready', (c) => {
@@ -18,82 +65,74 @@ client.once('ready', (c) => {
 });
 
 /**
- * Assign a specific role to a user in the guild
+ * Assign roles to a user in the guild
  * @param {string} userId - Discord User ID
+ * @param {string|string[]} roleIds - Single ID or Array of IDs
  */
-async function assignGuildRole(userId) {
+async function assignGuildRole(userId, roleIds) {
   try {
     const guild = GUILD_ID 
       ? await client.guilds.fetch(GUILD_ID) 
       : client.guilds.cache.first();
 
-    if (!guild) {
-      console.error('❌ Could not find Discord Guild. Please set DISCORD_GUILD_ID in .env');
-      return { success: false, error: 'Guild not found' };
-    }
+    if (!guild) return { success: false, error: 'Guild not found' };
 
     const member = await guild.members.fetch(userId);
-    if (!member) {
-      console.error(`❌ Member ${userId} not found in guild ${guild.name}. Are they in the server?`);
-      return { success: false, error: 'Member not found in server' };
-    }
+    if (!member) return { success: false, error: 'Member not found in server' };
 
-    console.log(`⏳ Attempting to add role ${ROLE_ID} to ${member.user.tag}...`);
-    await member.roles.add(ROLE_ID);
-    console.log(`✅ Assigned role ${ROLE_ID} to ${member.user.tag}`);
+    const idsToAdd = Array.isArray(roleIds) ? roleIds : [roleIds];
+    
+    console.log(`⏳ Attempting to add roles ${idsToAdd.join(', ')} to ${member.user.tag}...`);
+    await member.roles.add(idsToAdd.filter(id => !!id));
+    console.log(`✅ Assigned roles to ${member.user.tag}`);
     return { success: true };
   } catch (error) {
-    console.error(`❌ Failed to assign role to ${userId}:`, error.message);
+    console.error(`❌ Failed to assign roles to ${userId}:`, error.message);
     return { success: false, error: error.message };
   }
 }
 
 /**
- * Remove a specific role from a user in the guild
- * @param {string|null} userInfo - Discord User ID or Username
+ * Surgically remove only department-specific roles from a user
+ * @param {string} userInfo - Discord ID or Username
+ * @param {string} type - 'police', 'ems', or 'mechanic'
  */
-async function removeGuildRole(userInfo) {
-  if (!userInfo) return { success: false, error: 'No user info provided' };
+async function removeDepartmentRoles(userInfo, type) {
+  if (!userInfo || !type || !DEPARTMENT_ROLES[type]) return { success: false, error: 'Invalid parameters' };
   
   try {
     const guild = GUILD_ID 
       ? await client.guilds.fetch(GUILD_ID) 
       : client.guilds.cache.first();
 
-    if (!guild) {
-      console.error('❌ Could not find Discord Guild.');
-      return { success: false, error: 'Guild not found' };
-    }
+    if (!guild) return { success: false, error: 'Guild not found' };
 
     let member = null;
-
-    // Try finding by ID first
     if (/^\d+$/.test(userInfo)) {
       member = await guild.members.fetch(userInfo).catch(() => null);
     }
-
-    // Fallback: Search by username/tag if not found by ID
+    
     if (!member) {
-      console.log(`🔍 Member not found by ID. Searching by username: ${userInfo}`);
       const members = await guild.members.fetch();
       member = members.find(m => 
         m.user.username.toLowerCase() === userInfo.toLowerCase() || 
-        m.user.tag.toLowerCase() === userInfo.toLowerCase() ||
-        (m.nickname && m.nickname.toLowerCase() === userInfo.toLowerCase())
+        m.user.tag.toLowerCase() === userInfo.toLowerCase()
       );
     }
 
-    if (!member) {
-      console.warn(`⚠️ Member ${userInfo} not found in guild. They may have already left or username is incorrect.`);
-      return { success: false, error: 'Member not found' };
-    }
+    if (!member) return { success: false, error: 'Member not found' };
 
-    console.log(`⏳ Attempting to remove role ${ROLE_ID} from ${member.user.tag}...`);
-    await member.roles.remove(ROLE_ID);
-    console.log(`✅ Removed role ${ROLE_ID} from ${member.user.tag}`);
+    // Identify all roles that belong to this department
+    const deptConfig = DEPARTMENT_ROLES[type];
+    const rolesToRemove = [deptConfig.base, ...Object.values(deptConfig.ranks)];
+    
+    console.log(`⏳ Removing ${type} department roles from ${member.user.tag}...`);
+    await member.roles.remove(rolesToRemove.filter(id => !!id));
+    console.log(`✅ Surgically removed ${type} roles. Citizen role preserved.`);
+    
     return { success: true };
   } catch (error) {
-    console.error(`❌ Failed to remove role from ${userInfo}:`, error.message);
+    console.error(`❌ Failed to remove department roles:`, error.message);
     return { success: false, error: error.message };
   }
 }
@@ -229,4 +268,10 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
   console.warn('⚠️ DISCORD_BOT_TOKEN not configured. Bot will not start.');
 }
 
-module.exports = { sendStatusDM, assignGuildRole, removeGuildRole, sendChannelNotification };
+module.exports = { 
+  sendStatusDM, 
+  assignGuildRole, 
+  removeDepartmentRoles, 
+  sendChannelNotification,
+  DEPARTMENT_ROLES 
+};

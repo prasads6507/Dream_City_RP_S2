@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM, assignGuildRole, removeGuildRole, sendChannelNotification } = require('./discordBot');
+const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, DEPARTMENT_ROLES } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -136,9 +136,15 @@ app.post('/api/notify-user', async (req, res) => {
   const metadata = { jobRank, interviewDate, interviewTime };
   const result = await sendStatusDM(discordId, status, name, type, metadata);
   
-  // Assign Discord role if approved
-  if (status === 'approved') {
-    await assignGuildRole(discordId);
+  // Assign Discord roles if approved
+  if (status === 'approved' && DEPARTMENT_ROLES[type]) {
+    const baseRole = DEPARTMENT_ROLES[type].base;
+    const rankRole = DEPARTMENT_ROLES[type].ranks[jobRank];
+    const rolesToAssign = [baseRole, rankRole].filter(id => !!id);
+    
+    if (rolesToAssign.length > 0) {
+      await assignGuildRole(discordId, rolesToAssign);
+    }
   }
 
   // Send notification to the department-specific Discord channel (for both approved & rejected)
@@ -240,7 +246,20 @@ app.delete('/api/users/:uid', async (req, res) => {
     }
 
     // 2. Delete from Firestore (Always attempt)
+    let userRole = 'civilian';
     if (db) {
+      const userDoc = await db.collection('Users').doc(uid).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        userRole = userData.role || 'civilian';
+        
+        // Surgical Role Removal: Only remove department roles, keep Citizen
+        const discordIdentifier = userData.discordId || userData.discordUsername;
+        if (discordIdentifier && ['police', 'ems', 'mechanic'].includes(userRole)) {
+           console.log(`📡 Surgically removing ${userRole} roles for: ${discordIdentifier}`);
+           await removeDepartmentRoles(discordIdentifier, userRole);
+        }
+      }
       await db.collection('Users').doc(uid).delete();
       console.log(`📄 Deleted Firestore Doc: ${uid}`);
     }

@@ -12,9 +12,20 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 const DEPT_RANKS = {
-  police: ['Chief of Police', 'Assistant Chief', 'Commander', 'Officer'],
-  ems: ['EMS Chief', 'Assistant Chief', 'Paramedic', 'EMT'],
-  mechanic: ['Shop Manager', 'Shift Lead', 'Expert Mechanic', 'Apprentice']
+  police: [
+    'CHIEF', 'ASSISTANT CHIEF', 'COMMANDER', 'CAPTAIN', 'LIEUTENANT', 
+    'HEAD SERGEANT', 'SERGEANT', 'CORPORAL', 'LANCE CORPORAL', 
+    'SENIOR LEAD OFFICER', 'SENIOR OFFICER', 'OFFICER', 
+    'PROBATIONARY OFFICER', 'SOLO CADET', 'CADET'
+  ],
+  ems: [
+    'EMS Chief', 'EMS Co Chief', 'Paramedic', 'Surgeon', 
+    'Doctor', 'Sr Doctor', 'Jr Doctor', 'Trainee'
+  ],
+  mechanic: [
+    'Mechanic Chief', 'Garage Manager', 'Asst Manager', 
+    'Sr Mechanic', 'Jr Mechanic', 'Recruit'
+  ]
 };
 
 const AdminDashboard = () => {
