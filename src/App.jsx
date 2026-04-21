@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ParticleBackground from './components/ParticleBackground';
+import CarAnimation from './components/CarAnimation';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -17,6 +18,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <ParticleBackground />
+      <CarAnimation />
       <Navbar />
       <main className="flex-1">
         <Routes>
