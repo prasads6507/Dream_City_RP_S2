@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signIn, getUserData } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import DiscordLoading from '../components/DiscordLoading';
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,13 @@ const Login = () => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative' }}>
+      {loading && (
+        <DiscordLoading 
+          title="Staff" 
+          message="Authenticating credentials and verifying secure access to the command center..." 
+        />
+      )}
+      
       {/* Background glow */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
