@@ -4,36 +4,28 @@ import ServerStatus from '../components/ServerStatus';
 
 const Home = () => {
   const [isMuted, setIsMuted] = useState(true);
-  const videoContainerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const toggleMute = () => {
-    if (videoContainerRef.current) {
-      const video = videoContainerRef.current.querySelector('video');
-      if (video) {
-        video.muted = !video.muted;
-        setIsMuted(video.muted);
+    if (videoRef.current) {
+      const newMuted = !videoRef.current.muted;
+      videoRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+      
+      // Some browsers require a fresh play() call after unmuting if it was autoplayed
+      if (!newMuted) {
+        videoRef.current.play().catch(e => console.warn("Play after unmute failed:", e));
       }
     }
   };
 
-  // Force autoplay on iOS
+  // Force autoplay and loop initialization
   useEffect(() => {
-    if (videoContainerRef.current) {
-      const video = videoContainerRef.current.querySelector('video');
-      if (video) {
-        video.defaultMuted = true;
-        video.muted = true;
-        video.loop = true;
-        video.play().catch(error => {
-          console.warn("Autoplay was prevented by browser:", error);
-        });
-
-        // Fallback for browsers that ignore the loop attribute
-        video.addEventListener('ended', () => {
-          video.currentTime = 0;
-          video.play().catch(e => console.warn("Loop play prevented:", e));
-        });
-      }
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(error => {
+        console.warn("Autoplay was prevented by browser:", error);
+      });
     }
   }, []);
 
@@ -58,28 +50,22 @@ const Home = () => {
         alignItems: 'center',
         overflow: 'hidden',
       }}>
-        {/* Background Video - Rendered via dangerouslySetInnerHTML to enforce iOS Safari strict autoplay policies */}
-        <div 
-          ref={videoContainerRef}
-          style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%'
-          }}
-          dangerouslySetInnerHTML={{
-            __html: `
-              <video 
-                autoplay 
-                loop 
-                muted 
-                playsinline 
-                webkit-playsinline
-                preload="auto"
-                style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9) saturate(1.1); pointer-events: none;"
-              >
-                <source src="/background.mp4" type="video/mp4" />
-              </video>
-            `
-          }}
-        />
+        {/* Background Video */}
+        <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          <video 
+            ref={videoRef}
+            autoPlay 
+            loop 
+            muted 
+            playsInline 
+            webkit-playsinline="true"
+            preload="auto"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.9) saturate(1.1)', pointerEvents: 'none' }}
+          >
+            <source src="/background.mp4" type="video/mp4" />
+          </video>
+        </div>
+
         {/* Lighter gradient overlay mostly for bottom edge fade */}
         <div style={{
           position: 'absolute',
@@ -145,8 +131,6 @@ const Home = () => {
               Season 2
             </h2>
 
-
-
             {/* Buttons */}
             <div style={{
               display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
@@ -177,46 +161,6 @@ const Home = () => {
                   )}
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Bottom: Trailer Previews / Gallery Highlights */}
-          <div style={{ animation: 'slide-up 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both', width: '100%', marginTop: '40px' }}>
-            <div style={{ 
-              display: 'flex', gap: '16px', overflowX: 'auto', padding: '10px 20px', 
-              alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
-              maxWidth: '100vw', scrollSnapType: 'x mandatory' 
-            }}>
-              {[1, 2, 3].map(num => (
-                <div key={num} style={{
-                  width: 'min(240px, 85vw)', /* Makes it scale properly on small mobile screens */
-                  aspectRatio: '16/9',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  border: '1px solid rgba(167, 139, 250, 0.1)',
-                  boxShadow: '0 8px 30px rgba(0,0,0,0.4)',
-                  flexShrink: 0,
-                  cursor: 'pointer',
-                  transition: 'transform 0.3s ease, border-color 0.3s ease',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.borderColor = '#A78BFA';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.borderColor = 'rgba(167, 139, 250, 0.1)';
-                }}
-                >
-                  <img src={`/images/gallery-${num}.png`} alt={`Preview ${num}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#A78BFA', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(167,139,250,0.5)' }}>
-                      <div style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '12px solid #000', marginLeft: '3px' }} />
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
