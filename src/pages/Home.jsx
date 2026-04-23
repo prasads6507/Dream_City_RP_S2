@@ -51,7 +51,7 @@ const Home = () => {
         overflow: 'hidden',
       }}>
         {/* Background Video */}
-        <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+        <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0 }}>
           <video 
             ref={videoRef}
             autoPlay 
@@ -60,7 +60,10 @@ const Home = () => {
             playsInline 
             webkit-playsinline="true"
             preload="auto"
+            poster="/images/hero-bg.png"
             style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.9) saturate(1.1)', pointerEvents: 'none' }}
+            onCanPlay={() => console.log("🎥 Video can play")}
+            onError={(e) => console.error("❌ Video failed to load:", e)}
           >
             <source src="/background.mp4" type="video/mp4" />
           </video>
