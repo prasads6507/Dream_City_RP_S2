@@ -233,14 +233,23 @@ const Home = () => {
                   }}
                 >
                   {img.type === 'video' ? (
-                    <video
-                      src={img.src}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', display: 'block' }}
-                    />
+                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+                      <video
+                        src={img.src}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        style={{ 
+                          width: '100%', 
+                          height: '115%', /* Make taller to allow cropping */
+                          objectFit: 'cover', 
+                          transition: 'transform 0.6s ease', 
+                          display: 'block',
+                          transform: 'translateY(-8%)' /* Shift up to hide bottom watermark */
+                        }}
+                      />
+                    </div>
                   ) : (
                     <img
                       src={img.src}
