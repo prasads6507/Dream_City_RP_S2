@@ -52,12 +52,12 @@ const Navbar = () => {
         height: '76px',
       }}>
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '16px', textDecoration: 'none' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img 
             src="/images/logo.png" 
             alt="Dream City" 
             style={{ 
-              height: '56px', 
+              height: '64px', 
               width: 'auto',
               filter: 'drop-shadow(0 0 10px rgba(167, 139, 250, 0.3))',
               transition: 'transform 0.3s ease'
@@ -65,16 +65,6 @@ const Navbar = () => {
             onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.target.style.transform = 'scale(1)'}
           />
-          <span className="logo-text" style={{
-            fontFamily: '"Orbitron", sans-serif',
-            fontWeight: 800,
-            fontSize: '1.4rem',
-            color: '#fff',
-            letterSpacing: '2px',
-            textShadow: '0 0 15px rgba(167, 139, 250, 0.4)'
-          }}>
-            DCRP <span style={{ color: '#A78BFA' }}>S2</span>
-          </span>
         </Link>
 
         {/* Desktop Nav */}
