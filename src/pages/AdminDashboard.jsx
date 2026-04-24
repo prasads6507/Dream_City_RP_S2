@@ -783,22 +783,28 @@ const AdminDashboard = () => {
                         <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Character Name</div>
                         <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{app.characterName || 'N/A'}</div>
                       </div>
-                      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>RP Experience</div>
-                        <div style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.rpExperience}</div>
-                      </div>
-                    </div>
-
-                    {app.departmentReason && (
-                      <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 900, color: typeColors[app.type], letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Reason for Joining {app.type.toUpperCase()}</div>
-                        <div style={{ fontSize: '0.95rem', color: '#fff', lineHeight: 1.7, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{app.departmentReason}</div>
-                      </div>
-                    )}
-
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Scenario Response</div>
-                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', lineHeight: 1.7, fontStyle: 'italic', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>"{app.scenarioAnswer}"</div>
+                      <h3 style={{ fontSize: '0.7rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>RP Knowledge Test Results</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {[
+                          { label: 'What is Roleplay (RP)?', value: app.rpDefinition },
+                          { label: 'Discord Information usage in-game', value: app.metagamingScenario },
+                          { label: 'What is Power Gaming?', value: app.powerGaming },
+                          { label: 'What is Random Death Match (RDM)?', value: app.rdmDefinition },
+                          { label: 'What is Vehicle Death Match (VDM)?', value: app.vdmDefinition },
+                          { label: 'What is New Life Rule (NLR)?', value: app.nlrDefinition },
+                          { label: 'What is Fail RP?', value: app.failRpDefinition },
+                          { label: 'Response to Insults', value: app.insultScenario },
+                          { label: 'Police Stop response', value: app.policeStopScenario },
+                          { label: 'EMS Revive rejoin fight', value: app.emsReviveScenario },
+                          { label: 'Reporting Rule Breakers', value: app.ruleBreakScenario },
+                        ].map((q, idx) => (
+                          <div key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '16px' }}>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '8px' }}>{q.label}</div>
+                            <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.5 }}>{q.value || 'N/A'}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '40px', border: '1px solid rgba(255,255,255,0.02)' }}>

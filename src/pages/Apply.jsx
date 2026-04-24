@@ -38,10 +38,18 @@ const Apply = () => {
     discordName: '', // Discord Global Name
     age: '',
     discordId: '', // Numeric ID
-    characterName: '', // New field
-    rpExperience: '',
-    departmentReason: '', // Why join PD/EMS/etc
-    scenarioAnswer: '',
+    characterName: '',
+    rpDefinition: '',
+    metagamingScenario: '',
+    powerGaming: '',
+    rdmDefinition: '',
+    vdmDefinition: '',
+    nlrDefinition: '',
+    failRpDefinition: '',
+    insultScenario: '',
+    policeStopScenario: '',
+    emsReviveScenario: '',
+    ruleBreakScenario: '',
     characterBackstory: '',
   });
 
@@ -158,11 +166,18 @@ const Apply = () => {
       if (!formData.characterName.trim()) { setError('Character Name is required'); return false; }
       const ageNum = parseInt(formData.age);
       if (isNaN(ageNum) || ageNum < 15) { setError('Minimum age for application is 15.'); return false; }
-      if (appType !== 'civilian' && !formData.departmentReason.trim()) { 
-        setError('Please explain why you want to join this department.'); return false; 
-      }
     } else if (s === 2) {
-      if (formData.scenarioAnswer.trim().length < 50) { setError('Please provide a more detailed scenario answer.'); return false; }
+      const knowledgeFields = [
+        'rpDefinition', 'metagamingScenario', 'powerGaming', 'rdmDefinition', 
+        'vdmDefinition', 'nlrDefinition', 'failRpDefinition', 'insultScenario', 
+        'policeStopScenario', 'emsReviveScenario', 'ruleBreakScenario'
+      ];
+      for (const field of knowledgeFields) {
+        if (!formData[field] || formData[field].trim().length < 10) {
+          setError('Please answer all knowledge questions with more detail.');
+          return false;
+        }
+      }
     } else if (s === 3) {
       if (formData.characterBackstory.trim().length < 150) { setError('Backstory is too short (min 150 chars).'); return false; }
     }
@@ -399,31 +414,40 @@ const Apply = () => {
                       <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Character Name</label>
                       <input className="sc-input" value={formData.characterName} onChange={e => setFormData({...formData, characterName: e.target.value})} placeholder="Firstname Lastname" />
                     </div>
-                    {appType !== 'civilian' && (
-                      <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>Why do you want to join this department?</label>
-                        <textarea className="sc-input" value={formData.departmentReason} onChange={e => setFormData({...formData, departmentReason: e.target.value})} rows={5} style={{ resize: 'none' }} placeholder="What drives your choice?" />
-                      </div>
-                    )}
-                    <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px' }}>RP Experience</label>
-                      <textarea className="sc-input" value={formData.rpExperience} onChange={e => setFormData({...formData, rpExperience: e.target.value})} rows={3} style={{ resize: 'none' }} />
-                    </div>
                   </div>
                 )}
 
                 {step === 2 && (
-                  <div>
-                    <div style={{ background: 'rgba(167, 139, 250, 0.05)', padding: '24px', borderRadius: '12px', marginBottom: '24px', border: '1px solid rgba(167, 139, 250, 0.1)' }}>
-                       <h3 style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px', fontWeight: 800 }}>Scenario Task</h3>
-                       <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6 }}>
-                         {appType === 'police' ? "A citizen claims they were robbed, but has no proof. Later, you find the suspect with the items. How do you proceed?" : 
-                          appType === 'ems' ? "A mass casualty incident occurs. You are the only one on scene. How do you triage the victims?" :
-                          "You see two people arguing in the street about a minor fender bender. Things are getting heated. What do you do?"}
-                       </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                    <div style={{ background: 'rgba(167, 139, 250, 0.05)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(167, 139, 250, 0.1)' }}>
+                       <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px', fontWeight: 800 }}>RP Knowledge Test</h3>
+                       <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Please demonstrate your understanding of server rules and roleplay concepts.</p>
                     </div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' }}>Your Response</label>
-                    <textarea className="sc-input" value={formData.scenarioAnswer} onChange={e => setFormData({...formData, scenarioAnswer: e.target.value})} rows={8} style={{ resize: 'none' }} />
+
+                    {[
+                      { id: 'rpDefinition', label: '1. What is Roleplay (RP)?' },
+                      { id: 'metagamingScenario', label: '2. During a police chase, your friend tells you on Discord where cops are waiting. Can you use it?' },
+                      { id: 'powerGaming', label: '3. What is Power Gaming?' },
+                      { id: 'rdmDefinition', label: '4. What is Random Death Match (RDM)?' },
+                      { id: 'vdmDefinition', label: '5. What is Vehicle Death Match (VDM)?' },
+                      { id: 'nlrDefinition', label: '6. What is New Life Rule (NLR)?' },
+                      { id: 'failRpDefinition', label: '7. What is Fail RP?' },
+                      { id: 'insultScenario', label: '8. Someone insults you repeatedly. Can you kill them?' },
+                      { id: 'policeStopScenario', label: '9. If police stop you, what do you do?' },
+                      { id: 'emsReviveScenario', label: '10. EMS revives your friend in middle of shootout. Can he rejoin fight instantly?' },
+                      { id: 'ruleBreakScenario', label: '11. If someone breaks rules against you, what do you do?' },
+                    ].map(q => (
+                      <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>{q.label}</label>
+                        <textarea 
+                          className="sc-input" 
+                          value={formData[q.id]} 
+                          onChange={e => setFormData({...formData, [q.id]: e.target.value})} 
+                          rows={3} 
+                          style={{ resize: 'none' }} 
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
 
