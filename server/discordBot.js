@@ -237,6 +237,7 @@ async function sendStatusDM(discordId, status, name, type = 'Whitelist', metadat
 
 // Department Channel IDs
 const DEPARTMENT_CHANNELS = {
+  civilian: '1497311768832249886',
   police: '1493620877231915150',
   ems: '1493620878938734662',
   mechanic: '1493620879798567035'
