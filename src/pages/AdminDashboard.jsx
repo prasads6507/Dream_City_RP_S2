@@ -858,27 +858,38 @@ const AdminDashboard = () => {
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                         }}>
                           <div style={{ display: 'flex', gap: '20px' }}>
-                            <div>
-                              <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>📅 Interview Date</div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewDate || 'Not set'}</div>
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>⏰ Interview Time</div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewTime || 'TBD'}</div>
-                            </div>
+                            {app.type === 'civilian' ? (
+                              <div>
+                                <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>📌 Procedure</div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Join WFS between 6PM - 10PM</div>
+                              </div>
+                            ) : (
+                              <>
+                                <div>
+                                  <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>📅 Interview Date</div>
+                                  <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewDate || 'Not set'}</div>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800, textTransform: 'uppercase', marginBottom: '4px' }}>⏰ Interview Time</div>
+                                  <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{app.interviewTime || 'TBD'}</div>
+                                </div>
+                              </>
+                            )}
                           </div>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSchedulingApp(app);
-                              setScheduleData({ date: app.interviewDate || '', time: app.interviewTime || '' });
-                              setShowScheduleModal(true);
-                            }}
-                            className="sc-btn-outline"
-                            style={{ padding: '8px 16px', fontSize: '0.7rem', borderColor: 'rgba(6, 182, 212, 0.3)', color: '#06b6d4', height: 'fit-content' }}
-                          >
-                            ✏️ Edit Schedule
-                          </button>
+                          {app.type !== 'civilian' && (
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSchedulingApp(app);
+                                setScheduleData({ date: app.interviewDate || '', time: app.interviewTime || '' });
+                                setShowScheduleModal(true);
+                              }}
+                              className="sc-btn-outline"
+                              style={{ padding: '8px 16px', fontSize: '0.7rem', borderColor: 'rgba(6, 182, 212, 0.3)', color: '#06b6d4', height: 'fit-content' }}
+                            >
+                              ✏️ Edit Schedule
+                            </button>
+                          )}
                         </div>
                       )}
 
@@ -896,6 +907,16 @@ const AdminDashboard = () => {
                               style={{ flex: 1, padding: '16px', background: 'rgba(6, 182, 212, 1)', border: 'none' }}
                             >
                               🗓️ Schedule Interview
+                            </button>
+                          )}
+                          {app.type === 'civilian' && (
+                            <button 
+                              onClick={() => handleStatusUpdate(app, 'scheduled')} 
+                              disabled={actionLoading === app.id} 
+                              className="sc-btn" 
+                              style={{ flex: 1, padding: '16px', background: 'rgba(6, 182, 212, 1)', border: 'none' }}
+                            >
+                              🗓️ Whitelist Interview
                             </button>
                           )}
                           <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
