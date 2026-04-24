@@ -11,6 +11,50 @@ import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFro
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
+const DEPT_QUESTIONS = {
+  civilian: [
+    { id: 'q1', label: 'What is Roleplay (RP)?' },
+    { id: 'q2', label: 'During a police chase, your friend tells you on Discord where cops are waiting. Can you use it?' },
+    { id: 'q3', label: 'What is Power Gaming?' },
+    { id: 'q4', label: 'What is Random Death Match (RDM)?' },
+    { id: 'q5', label: 'What is Vehicle Death Match (VDM)?' },
+    { id: 'q6', label: 'What is New Life Rule (NLR)?' },
+    { id: 'q7', label: 'What is Fail RP?' },
+    { id: 'q8', label: 'Someone insults you repeatedly. Can you kill them?' },
+    { id: 'q9', label: 'If police stop you, what do you do?' },
+    { id: 'q10', label: 'EMS revives your friend in middle of shootout. Can he rejoin fight instantly?' },
+    { id: 'q11', label: 'If someone breaks rules against you, what do you do?' }
+  ],
+  police: [
+    { id: 'pd1', label: 'Why do you want to join the Police Department?' },
+    { id: 'pd2', label: 'What qualities make a good police officer?' },
+    { id: 'pd3', label: 'Why should we choose you over other applicants?' },
+    { id: 'pd4', label: 'What does professionalism mean to you?' },
+    { id: 'pd5', label: 'A suspect starts running during arrest. What are your next steps?' },
+    { id: 'pd6', label: 'What is the difference between corruption RP and abuse?' },
+    { id: 'pd7', label: 'Two officers argue on radio during an active scene. What do you do?' },
+    { id: 'pd8', label: 'You are alone on patrol and multiple armed suspects begin robbing a store. What is your priority?' },
+    { id: 'pd9', label: 'During a foot chase, the suspect enters an apartment interior. How do you clear it safely?' },
+    { id: 'pd10', label: 'You accidentally shoot a civilian during crossfire. What next?' }
+  ],
+  ems: [
+    { id: 'ems1', label: 'Why do you want to join EMS?' },
+    { id: 'ems2', label: 'You arrive at an active shootout with injured people nearby. What do you do?' },
+    { id: 'ems3', label: 'A patient is unconscious after a car crash. What are your first steps?' },
+    { id: 'ems4', label: 'Two patients need help at once. One has minor injuries, one is bleeding heavily. What do you do?' },
+    { id: 'ems5', label: 'Police want to question a patient during treatment. What do you do?' },
+    { id: 'ems6', label: 'A downed criminal wants to instantly run after revive. What do you do?' },
+    { id: 'ems7', label: 'Can EMS enter an unsecured robbery scene to save someone?' }
+  ],
+  mechanic: [
+    { id: 'mech1', label: 'Why do you want to join the Mechanic Department?' },
+    { id: 'mech2', label: 'What qualities make a good mechanic?' },
+    { id: 'mech3', label: 'A customer comes in angry and demands instant service. What do you do?' },
+    { id: 'mech4', label: 'Two vehicles arrive at once: one flat tire, one engine smoking. Which do you help first?' },
+    { id: 'mech5', label: 'A police vehicle needs emergency repairs during an active scene. What do you do?' }
+  ]
+};
+
 const DEPT_RANKS = {
   police: [
     'CHIEF', 'ASSISTANT CHIEF', 'COMMANDER', 'CAPTAIN', 'LIEUTENANT', 
@@ -785,24 +829,14 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
-                      <h3 style={{ fontSize: '0.7rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>RP Knowledge Test Results</h3>
+                      <h3 style={{ fontSize: '0.7rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>{app.type.toUpperCase()} Application Answers</h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                        {[
-                          { label: 'What is Roleplay (RP)?', value: app.rpDefinition },
-                          { label: 'Discord Information usage in-game', value: app.metagamingScenario },
-                          { label: 'What is Power Gaming?', value: app.powerGaming },
-                          { label: 'What is Random Death Match (RDM)?', value: app.rdmDefinition },
-                          { label: 'What is Vehicle Death Match (VDM)?', value: app.vdmDefinition },
-                          { label: 'What is New Life Rule (NLR)?', value: app.nlrDefinition },
-                          { label: 'What is Fail RP?', value: app.failRpDefinition },
-                          { label: 'Response to Insults', value: app.insultScenario },
-                          { label: 'Police Stop response', value: app.policeStopScenario },
-                          { label: 'EMS Revive rejoin fight', value: app.emsReviveScenario },
-                          { label: 'Reporting Rule Breakers', value: app.ruleBreakScenario },
-                        ].map((q, idx) => (
+                        {(DEPT_QUESTIONS[app.type] || []).map((q, idx) => (
                           <div key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '16px' }}>
                             <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '8px' }}>{q.label}</div>
-                            <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.5, wordBreak: 'break-all', overflowWrap: 'break-word' }}>{q.value || 'N/A'}</div>
+                            <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.5, wordBreak: 'break-all', overflowWrap: 'break-word' }}>
+                              {app.answers?.[q.id] || app[q.id] || 'N/A'}
+                            </div>
                           </div>
                         ))}
                       </div>

@@ -6,6 +6,50 @@ import { submitApplication, subscribeToAppSettings, getUserApplications } from '
 import DiscordLoading from '../components/DiscordLoading';
 import confetti from 'canvas-confetti';
 
+const DEPT_QUESTIONS = {
+  civilian: [
+    { id: 'q1', label: 'What is Roleplay (RP)?' },
+    { id: 'q2', label: 'During a police chase, your friend tells you on Discord where cops are waiting. Can you use it?' },
+    { id: 'q3', label: 'What is Power Gaming?' },
+    { id: 'q4', label: 'What is Random Death Match (RDM)?' },
+    { id: 'q5', label: 'What is Vehicle Death Match (VDM)?' },
+    { id: 'q6', label: 'What is New Life Rule (NLR)?' },
+    { id: 'q7', label: 'What is Fail RP?' },
+    { id: 'q8', label: 'Someone insults you repeatedly. Can you kill them?' },
+    { id: 'q9', label: 'If police stop you, what do you do?' },
+    { id: 'q10', label: 'EMS revives your friend in middle of shootout. Can he rejoin fight instantly?' },
+    { id: 'q11', label: 'If someone breaks rules against you, what do you do?' }
+  ],
+  police: [
+    { id: 'pd1', label: 'Why do you want to join the Police Department?' },
+    { id: 'pd2', label: 'What qualities make a good police officer?' },
+    { id: 'pd3', label: 'Why should we choose you over other applicants?' },
+    { id: 'pd4', label: 'What does professionalism mean to you?' },
+    { id: 'pd5', label: 'A suspect starts running during arrest. What are your next steps?' },
+    { id: 'pd6', label: 'What is the difference between corruption RP and abuse?' },
+    { id: 'pd7', label: 'Two officers argue on radio during an active scene. What do you do?' },
+    { id: 'pd8', label: 'You are alone on patrol and multiple armed suspects begin robbing a store. What is your priority?' },
+    { id: 'pd9', label: 'During a foot chase, the suspect enters an apartment interior. How do you clear it safely?' },
+    { id: 'pd10', label: 'You accidentally shoot a civilian during crossfire. What next?' }
+  ],
+  ems: [
+    { id: 'ems1', label: 'Why do you want to join EMS?' },
+    { id: 'ems2', label: 'You arrive at an active shootout with injured people nearby. What do you do?' },
+    { id: 'ems3', label: 'A patient is unconscious after a car crash. What are your first steps?' },
+    { id: 'ems4', label: 'Two patients need help at once. One has minor injuries, one is bleeding heavily. What do you do?' },
+    { id: 'ems5', label: 'Police want to question a patient during treatment. What do you do?' },
+    { id: 'ems6', label: 'A downed criminal wants to instantly run after revive. What do you do?' },
+    { id: 'ems7', label: 'Can EMS enter an unsecured robbery scene to save someone?' }
+  ],
+  mechanic: [
+    { id: 'mech1', label: 'Why do you want to join the Mechanic Department?' },
+    { id: 'mech2', label: 'What qualities make a good mechanic?' },
+    { id: 'mech3', label: 'A customer comes in angry and demands instant service. What do you do?' },
+    { id: 'mech4', label: 'Two vehicles arrive at once: one flat tire, one engine smoking. Which do you help first?' },
+    { id: 'mech5', label: 'A police vehicle needs emergency repairs during an active scene. What do you do?' }
+  ]
+};
+
 const Apply = () => {
   const { currentUser, userData, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -52,17 +96,7 @@ const Apply = () => {
     age: '',
     discordId: '', // Numeric ID
     characterName: '',
-    rpDefinition: '',
-    metagamingScenario: '',
-    powerGaming: '',
-    rdmDefinition: '',
-    vdmDefinition: '',
-    nlrDefinition: '',
-    failRpDefinition: '',
-    insultScenario: '',
-    policeStopScenario: '',
-    emsReviveScenario: '',
-    ruleBreakScenario: '',
+    answers: {}, // Dynamic answers
     characterBackstory: '',
   });
 
@@ -180,14 +214,11 @@ const Apply = () => {
       const ageNum = parseInt(formData.age);
       if (isNaN(ageNum) || ageNum < 15) { setError('Minimum age for application is 15.'); return false; }
     } else if (s === 2) {
-      const knowledgeFields = [
-        'rpDefinition', 'metagamingScenario', 'powerGaming', 'rdmDefinition', 
-        'vdmDefinition', 'nlrDefinition', 'failRpDefinition', 'insultScenario', 
-        'policeStopScenario', 'emsReviveScenario', 'ruleBreakScenario'
-      ];
-      for (const field of knowledgeFields) {
-        if (!formData[field] || formData[field].trim().length < 10) {
-          setError('Please answer all knowledge questions with more detail.');
+      const currentQuestions = DEPT_QUESTIONS[appType] || [];
+      for (const q of currentQuestions) {
+        const answer = formData.answers[q.id];
+        if (!answer || answer.trim().length < 10) {
+          setError('Please answer all department questions with more detail.');
           return false;
         }
       }
@@ -433,29 +464,24 @@ const Apply = () => {
                 {step === 2 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     <div style={{ background: 'rgba(167, 139, 250, 0.05)', padding: '24px', borderRadius: '12px', border: '1px solid rgba(167, 139, 250, 0.1)' }}>
-                       <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px', fontWeight: 800 }}>RP Knowledge Test</h3>
-                       <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Please demonstrate your understanding of server rules and roleplay concepts.</p>
+                       <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#A78BFA', marginBottom: '8px', fontWeight: 800 }}>
+                         {appType.toUpperCase()} Application Questions
+                       </h3>
+                       <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Please demonstrate your understanding and suitability for this position.</p>
                     </div>
 
-                    {[
-                      { id: 'rpDefinition', label: '1. What is Roleplay (RP)?' },
-                      { id: 'metagamingScenario', label: '2. During a police chase, your friend tells you on Discord where cops are waiting. Can you use it?' },
-                      { id: 'powerGaming', label: '3. What is Power Gaming?' },
-                      { id: 'rdmDefinition', label: '4. What is Random Death Match (RDM)?' },
-                      { id: 'vdmDefinition', label: '5. What is Vehicle Death Match (VDM)?' },
-                      { id: 'nlrDefinition', label: '6. What is New Life Rule (NLR)?' },
-                      { id: 'failRpDefinition', label: '7. What is Fail RP?' },
-                      { id: 'insultScenario', label: '8. Someone insults you repeatedly. Can you kill them?' },
-                      { id: 'policeStopScenario', label: '9. If police stop you, what do you do?' },
-                      { id: 'emsReviveScenario', label: '10. EMS revives your friend in middle of shootout. Can he rejoin fight instantly?' },
-                      { id: 'ruleBreakScenario', label: '11. If someone breaks rules against you, what do you do?' },
-                    ].map(q => (
+                    {(DEPT_QUESTIONS[appType] || []).map((q, idx) => (
                       <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>{q.label}</label>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>
+                          {idx + 1}. {q.label}
+                        </label>
                         <textarea 
                           className="sc-input" 
-                          value={formData[q.id]} 
-                          onChange={e => setFormData({...formData, [q.id]: e.target.value})} 
+                          value={formData.answers[q.id] || ''} 
+                          onChange={e => setFormData({
+                            ...formData, 
+                            answers: { ...formData.answers, [q.id]: e.target.value }
+                          })} 
                           rows={3} 
                           style={{ resize: 'none' }} 
                         />
