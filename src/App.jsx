@@ -27,16 +27,16 @@ function App() {
     clickSound.preload = 'auto';
 
     const handleGlobalClick = (e) => {
-      // Play sound for buttons, links, or elements with btn classes
-      const target = e.target.closest('button, a, .sc-btn, .sc-btn-outline');
+      // Play sound for all interactive elements
+      const target = e.target.closest('button, a, .sc-btn, .sc-btn-outline, input[type="submit"], select, [role="button"]');
       if (target) {
         clickSound.currentTime = 0;
-        clickSound.play().catch(() => {}); // Catch browser auto-play blocks
+        clickSound.play().catch(() => {});
       }
     };
 
-    document.addEventListener('click', handleGlobalClick);
-    return () => document.removeEventListener('click', handleGlobalClick);
+    document.addEventListener('mousedown', handleGlobalClick);
+    return () => document.removeEventListener('mousedown', handleGlobalClick);
   }, []);
 
   return (

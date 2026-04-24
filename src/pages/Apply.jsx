@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { signInWithDiscord } from '../services/authService';
 import { submitApplication, subscribeToAppSettings, getUserApplications } from '../services/applicationService';
 import DiscordLoading from '../components/DiscordLoading';
+import confetti from 'canvas-confetti';
 
 const Apply = () => {
   const { currentUser, userData, loading: authLoading } = useAuth();
@@ -23,6 +24,18 @@ const Apply = () => {
 
   const [userApplications, setUserApplications] = useState([]);
   const [loadingApps, setLoadingApps] = useState(false);
+
+  // Success Confetti
+  useEffect(() => {
+    if (submitted) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#A78BFA', '#F59E0B', '#10B981', '#ffffff']
+      });
+    }
+  }, [submitted]);
 
   // Subscribe to real-time locks
   useEffect(() => {
