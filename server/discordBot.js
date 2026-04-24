@@ -151,11 +151,13 @@ const SCHEDULED_GIF = 'https://gifdb.com/images/high/calendar-appointment-schedu
 /**
  * Creates the standardized embed for both DM and Channel notifications
  */
-function createStatusEmbed(type, status, name, discordId, metadata = {}) {
+function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
   const isApproved = status === 'approved';
   const isScheduled = status === 'scheduled';
+  const lowType = (type || '').toLowerCase();
+  const isCivilian = lowType === 'civilian' || lowType === 'whitelist';
   
-  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  const typeLabel = isCivilian ? 'Whitelist' : type.charAt(0).toUpperCase() + type.slice(1);
   const gifUrl = isApproved ? APPROVED_GIF : isScheduled ? SCHEDULED_GIF : REJECTED_GIF;
   const statusEmoji = isApproved ? '✅' : isScheduled ? '🗓️' : '❌';
   const statusText = isApproved ? 'APPROVED' : isScheduled ? 'SCHEDULED' : 'REJECTED';
@@ -167,8 +169,8 @@ function createStatusEmbed(type, status, name, discordId, metadata = {}) {
     const rankText = metadata.jobRank ? ` as a **${metadata.jobRank}**` : '';
     description = `**${name}**! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**${rankText}.\n\nWelcome to the team! 🎉`;
   } else if (isScheduled) {
-    if (type === 'civilian' || type === 'Whitelist') {
-      description = `**${name}**, Scheduled the **Whitelist Interview** come and join in **WFS (Waiting For Support)** between **6PM - 10PM** one of our team will contact you. Thank you Team DCRP S2`;
+    if (isCivilian) {
+      description = `**${name}**, your application has reached the next stage! We have **SCHEDULED A WHITELIST INTERVIEW** for you.\n\n⏰ **Time**: 6PM - 10PM\n\nPlease be present in the **Waiting For Support** at the scheduled time. Thank you Team DCRP S2`;
     } else {
       description = `**${name}**, your **${typeLabel}** application has reached the next stage! We have **SCHEDULED AN INTERVIEW** for you.\n\n📅 **Date**: ${metadata.interviewDate}\n⏰ **Time**: ${metadata.interviewTime || 'TBD'}\n\nPlease be present in the waiting room at the scheduled time.`;
     }
@@ -186,14 +188,14 @@ function createStatusEmbed(type, status, name, discordId, metadata = {}) {
     fields.push({ name: '🎖️ Position', value: metadata.jobRank, inline: true });
   }
 
-  if (isScheduled && metadata.interviewDate) {
+  if (isScheduled && !isCivilian && metadata.interviewDate) {
     fields.push({ name: '📅 Interview', value: `${metadata.interviewDate} @ ${metadata.interviewTime || 'TBD'}`, inline: false });
-  } else if (isScheduled && (type === 'civilian' || type === 'Whitelist')) {
-    fields.push({ name: '📌 Procedure', value: 'Join WFS between 6PM - 10PM', inline: false });
+  } else if (isScheduled && isCivilian) {
+    fields.push({ name: '⏰ Time Range', value: '6PM - 10PM (WFS)', inline: false });
   }
 
   return {
-    title: `${statusEmoji} ${typeLabel} Application ${statusText}`,
+    title: `${statusEmoji} ${isCivilian ? 'Whitelist Interview' : `${typeLabel} Application`} ${statusText}`,
     description: description,
     color: color,
     fields: fields,
