@@ -783,6 +783,7 @@ const AdminDashboard = () => {
                         <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Character Name</div>
                         <div style={{ fontWeight: 800, fontSize: '1.2rem' }}>{app.characterName || 'N/A'}</div>
                       </div>
+                    </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', padding: '24px', borderRadius: '16px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.02)' }}>
                       <h3 style={{ fontSize: '0.7rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>RP Knowledge Test Results</h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
