@@ -20,6 +20,25 @@ import Status from './pages/Status';
 function App() {
   const [loading, setLoading] = useState(true);
 
+  // Global Click Sound
+  useEffect(() => {
+    const clickSound = new Audio('https://www.soundjay.com/buttons/button-16.mp3');
+    clickSound.volume = 0.2;
+    clickSound.preload = 'auto';
+
+    const handleGlobalClick = (e) => {
+      // Play sound for buttons, links, or elements with btn classes
+      const target = e.target.closest('button, a, .sc-btn, .sc-btn-outline');
+      if (target) {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(() => {}); // Catch browser auto-play blocks
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
+
   return (
     <>
       {loading && <Preloader onComplete={() => setLoading(false)} />}

@@ -802,7 +802,7 @@ const AdminDashboard = () => {
                         ].map((q, idx) => (
                           <div key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '16px' }}>
                             <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '8px' }}>{q.label}</div>
-                            <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.5 }}>{q.value || 'N/A'}</div>
+                            <div style={{ fontSize: '0.9rem', color: '#fff', lineHeight: 1.5, wordBreak: 'break-all', overflowWrap: 'break-word' }}>{q.value || 'N/A'}</div>
                           </div>
                         ))}
                       </div>
