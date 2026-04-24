@@ -143,9 +143,9 @@ async function removeDepartmentRoles(userInfo, type) {
   }
 }
 
-// GIF URLs for approved/rejected (Direct Image URLs for discord embeds)
-const APPROVED_GIF = 'https://gifdb.com/images/high/approved-498-x-498-gif-5cqy83ahb678q1sa.gif';
-const REJECTED_GIF = 'https://www.image2url.com/r2/default/images/1776573467268-e893164b-4c67-4752-9f05-091137e5f6a1.gif';
+// GIFs and Branding Images (Direct Image URLs for discord embeds)
+const APPROVED_GIF = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/approved.png';
+const REJECTED_GIF = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/rejected.png';
 const SCHEDULED_GIF = 'https://gifdb.com/images/high/calendar-appointment-scheduling-8v7m3m8p9n5f9p5p.gif';
 
 /**
