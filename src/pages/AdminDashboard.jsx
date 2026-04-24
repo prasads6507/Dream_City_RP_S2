@@ -242,18 +242,18 @@ const AdminDashboard = () => {
     setActionLoading(app.id);
     try {
       // 1. Save rank to Firestore first
-      await updateApplicationMetadata(app.id, { jobRank: rank });
+      if (rank) await updateApplicationMetadata(app.id, { jobRank: rank });
       
       // 2. Complete decision (Approved) + Notify with Rank
-      const metadata = { jobRank: rank };
+      const metadata = rank ? { jobRank: rank } : {};
       const result = await processApplicationDecision(app.id, 'approved', app, metadata);
       
       setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved', jobRank: rank } : a));
       
       if (!result.discord) {
-        setToast({ type: 'warning', message: `Approved as ${rank}, but Discord failed.` });
+        setToast({ type: 'warning', message: `Approved${rank ? ` as ${rank}` : ''}, but Discord failed.` });
       } else {
-        setToast({ type: 'success', message: `Approved as ${rank} and Discord role assigned!` });
+        setToast({ type: 'success', message: `Approved${rank ? ` as ${rank}` : ''} and Discord role assigned!` });
       }
     } catch (err) {
       setToast({ type: 'error', message: 'Approval failed.' });
@@ -930,25 +930,29 @@ const AdminDashboard = () => {
 
                       {app.status === 'scheduled' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div>
-                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Select Job Position</div>
-                            <select 
-                              value={selectedRank[app.id] || ''} 
-                              onChange={(e) => setSelectedRank(prev => ({ ...prev, [app.id]: e.target.value }))}
-                              style={{
-                                width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
-                                borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none'
-                              }}
-                            >
-                              <option value="">-- Choose Level --</option>
-                              {(DEPT_RANKS[app.type] || []).map(r => (
-                                <option key={r} value={r}>{r}</option>
-                              ))}
-                            </select>
-                          </div>
+                          {app.type !== 'civilian' && (
+                            <div>
+                              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Select Job Position</div>
+                              <select 
+                                value={selectedRank[app.id] || ''} 
+                                onChange={(e) => setSelectedRank(prev => ({ ...prev, [app.id]: e.target.value }))}
+                                style={{
+                                  width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                                  borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none'
+                                }}
+                              >
+                                <option value="">-- Choose Level --</option>
+                                {(DEPT_RANKS[app.type] || []).map(r => (
+                                  <option key={r} value={r}>{r}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                           <div style={{ display: 'flex', gap: '16px' }}>
                             <button onClick={() => handleApproveWithRank(app)} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
-                              {actionLoading === app.id ? 'Processing...' : `✓ Confirm & Approve as ${selectedRank[app.id] || '...'}`}
+                              {actionLoading === app.id ? 'Processing...' : (
+                                app.type === 'civilian' ? '✓ Confirm & Approve Whitelist' : `✓ Confirm & Approve as ${selectedRank[app.id] || '...'}`
+                              )}
                             </button>
                             <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
                               {actionLoading === app.id ? 'Processing...' : '✕ Reject'}

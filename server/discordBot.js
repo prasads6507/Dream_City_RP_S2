@@ -186,8 +186,10 @@ function createStatusEmbed(type, status, name, discordId, metadata = {}) {
     fields.push({ name: '🎖️ Position', value: metadata.jobRank, inline: true });
   }
 
-  if (isScheduled) {
-    fields.push({ name: '📅 Interview', value: `${metadata.interviewDate} @ ${metadata.interviewTime}`, inline: false });
+  if (isScheduled && metadata.interviewDate) {
+    fields.push({ name: '📅 Interview', value: `${metadata.interviewDate} @ ${metadata.interviewTime || 'TBD'}`, inline: false });
+  } else if (isScheduled && (type === 'civilian' || type === 'Whitelist')) {
+    fields.push({ name: '📌 Procedure', value: 'Join WFS between 6PM - 10PM', inline: false });
   }
 
   return {
