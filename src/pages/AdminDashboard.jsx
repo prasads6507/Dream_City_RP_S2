@@ -233,7 +233,7 @@ const AdminDashboard = () => {
 
   const handleApproveWithRank = async (app) => {
     const rank = selectedRank[app.id];
-    if (!rank) {
+    if (app.type !== 'civilian' && !rank) {
       setToast({ type: 'error', message: 'Please select a rank first!' });
       setTimeout(() => setToast(null), 3000);
       return;
