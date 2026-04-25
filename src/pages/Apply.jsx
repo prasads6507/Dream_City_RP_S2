@@ -187,7 +187,12 @@ const Apply = () => {
       await signInWithDiscord();
       // Stay on the selection view so the user can see their application statuses
     } catch (err) {
-      setError('Login failed. Please disable Adblockers and ensure cookies are enabled.');
+      console.error('Discord Auth Error:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Login cancelled. Please complete the login process in the popup window.');
+      } else {
+        setError(`Login failed: ${err.message || 'Please disable Adblockers and ensure cookies are enabled.'}`);
+      }
     } finally {
       setDiscordConnecting(false);
     }
