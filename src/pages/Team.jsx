@@ -1,6 +1,7 @@
 const Team = () => {
   const staff = [
-    { name: 'DCRP || ROCKY', role: 'FOUNDER', avatar: '/images/rocky_avatar.png' },
+    { name: 'DCRP || CAPTAIN', role: 'FOUNDER', avatar: '/images/captain_avatar.png' },
+    { name: 'DCRP || ROCKY', role: 'WEBSITE DESIGNER', avatar: '/images/rocky_avatar.png' },
     { name: 'DCRP || AGENT', role: 'ADMIN', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=agent' },
     { name: 'DCRP || DEV', role: 'ADMIN', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=dev' },
     { name: 'DCRP || ALPHA', role: 'DEVELOP', avatar: 'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=alpha' },
