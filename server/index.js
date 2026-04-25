@@ -126,14 +126,14 @@ app.post('/api/users', async (req, res) => {
  * POST /api/notify-user
  */
 app.post('/api/notify-user', async (req, res) => {
-  const { discordId, status, name, type, jobRank, interviewDate, interviewTime } = req.body;
+  const { discordId, status, name, type, jobRank, interviewDate, interviewTime, adminMessage } = req.body;
   console.log(`📬 Received /api/notify-user: ID=${discordId}, Status=${status}, User=${name}`);
 
   if (!discordId || !status || !name) {
     return res.status(400).json({ success: false, message: 'Missing required fields' });
   }
 
-  const metadata = { jobRank, interviewDate, interviewTime };
+  const metadata = { jobRank, interviewDate, interviewTime, adminMessage };
   const result = await sendStatusDM(discordId, status, name, type, metadata);
   
   // Assign Discord roles if approved

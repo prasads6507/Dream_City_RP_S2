@@ -194,6 +194,10 @@ function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
     fields.push({ name: '⏰ Time Range', value: '6PM - 10PM (WFS)', inline: false });
   }
 
+  if (metadata.adminMessage) {
+    fields.push({ name: '📝 Message from Admin', value: metadata.adminMessage, inline: false });
+  }
+
   return {
     title: `${statusEmoji} ${isCivilian ? 'Whitelist Interview' : `${typeLabel} Application`} ${statusText}`,
     description: description,
