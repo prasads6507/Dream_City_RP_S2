@@ -104,6 +104,7 @@ const AdminDashboard = () => {
   const [schedulingApp, setSchedulingApp] = useState(null);
   const [scheduleData, setScheduleData] = useState({ date: '', time: '' });
   const [selectedRank, setSelectedRank] = useState({}); // { appId: rank }
+  const [adminMessages, setAdminMessages] = useState({}); // { appId: message }
 
   // Pagination State
   const [staffPage, setStaffPage] = useState(1);
@@ -173,7 +174,9 @@ const AdminDashboard = () => {
   const handleStatusUpdate = async (app, status) => {
     setActionLoading(app.id);
     try {
-      const result = await processApplicationDecision(app.id, status, app);
+      const adminMessage = adminMessages[app.id] || '';
+      const metadata = { adminMessage };
+      const result = await processApplicationDecision(app.id, status, app, metadata);
       
       setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status } : a));
       
@@ -241,11 +244,13 @@ const AdminDashboard = () => {
     
     setActionLoading(app.id);
     try {
+      const adminMessage = adminMessages[app.id] || '';
+      
       // 1. Save rank to Firestore first
       if (rank) await updateApplicationMetadata(app.id, { jobRank: rank });
       
       // 2. Complete decision (Approved) + Notify with Rank
-      const metadata = rank ? { jobRank: rank } : {};
+      const metadata = rank ? { jobRank: rank, adminMessage } : { adminMessage };
       const result = await processApplicationDecision(app.id, 'approved', app, metadata);
       
       setApplications(prev => prev.map(a => a.id === app.id ? { ...a, status: 'approved', jobRank: rank } : a));
@@ -895,7 +900,20 @@ const AdminDashboard = () => {
 
                       {/* Status-Based Actions */}
                       {app.status === 'pending' && (
-                        <div style={{ display: 'flex', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Optional Message (Sent to Applicant)</div>
+                            <textarea 
+                              placeholder="Add a reason for rejection or a welcome message..."
+                              value={adminMessages[app.id] || ''}
+                              onChange={(e) => setAdminMessages(prev => ({ ...prev, [app.id]: e.target.value }))}
+                              style={{
+                                width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                                borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none', resize: 'vertical', minHeight: '60px'
+                              }}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '16px' }}>
                           {['police', 'ems', 'mechanic'].includes(app.type) && (
                             <button 
                               onClick={() => {
@@ -926,10 +944,23 @@ const AdminDashboard = () => {
                             {actionLoading === app.id ? 'Processing...' : '✕ Reject'}
                           </button>
                         </div>
+                        </div>
                       )}
 
                       {app.status === 'scheduled' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Optional Message (Sent to Applicant)</div>
+                            <textarea 
+                              placeholder="Add a reason for rejection or a welcome message..."
+                              value={adminMessages[app.id] || ''}
+                              onChange={(e) => setAdminMessages(prev => ({ ...prev, [app.id]: e.target.value }))}
+                              style={{
+                                width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                                borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none', resize: 'vertical', minHeight: '60px'
+                              }}
+                            />
+                          </div>
                           {app.type !== 'civilian' && (
                             <div>
                               <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase' }}>Select Job Position</div>
