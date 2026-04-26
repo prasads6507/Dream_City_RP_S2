@@ -287,10 +287,50 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
   console.warn('⚠️ DISCORD_BOT_TOKEN not configured. Bot will not start.');
 }
 
+/**
+ * Send a notification to the new applications Discord channel when an application is submitted
+ * @param {string} name - Applicant name
+ * @param {string} discordId - Applicant Discord ID
+ * @param {string} type - Application type
+ */
+async function sendNewApplicationNotification(name, discordId, type) {
+  try {
+    const channelId = '1498015267987521616';
+    const channel = await client.channels.fetch(channelId);
+    if (!channel) {
+      console.error(`❌ Could not find channel: ${channelId}`);
+      return { success: false, error: 'Channel not found' };
+    }
+
+    const typeLabel = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Unknown';
+    
+    const embed = {
+      title: '📋 New Application Received',
+      description: `We have received the **${typeLabel}** application of **${name}** (<@${discordId}>).`,
+      color: 0x6c3ce1, // Purple accent color
+      fields: [
+        { name: '👤 Applicant', value: name, inline: true },
+        { name: '🎮 Discord ID', value: discordId, inline: true },
+        { name: '📋 Department', value: typeLabel, inline: true }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: 'Dream City Roleplay S2 — Whitelist System' }
+    };
+
+    await channel.send({ embeds: [embed] });
+    console.log(`📢 New application notification sent to #${channel.name} for ${name}`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ Failed to send new application notification:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = { 
   sendStatusDM, 
   assignGuildRole, 
   removeDepartmentRoles, 
   sendChannelNotification,
+  sendNewApplicationNotification,
   DEPARTMENT_ROLES 
 };

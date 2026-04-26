@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, DEPARTMENT_ROLES } = require('./discordBot');
+const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, sendNewApplicationNotification, DEPARTMENT_ROLES } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -168,6 +168,26 @@ app.post('/api/notify-user', async (req, res) => {
   
   if (result.success) {
     res.json({ success: true, message: 'Notification sent and role assigned', channelNotification: channelResult.success });
+  } else {
+    res.status(500).json({ success: false, message: result.error });
+  }
+});
+
+/**
+ * Notify when a new application is submitted
+ * POST /api/notify-new-application
+ */
+app.post('/api/notify-new-application', async (req, res) => {
+  const { name, discordId, type } = req.body;
+  console.log(`📬 Received /api/notify-new-application: User=${name}, Type=${type}`);
+
+  if (!name || !discordId) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  const result = await sendNewApplicationNotification(name, discordId, type);
+  if (result.success) {
+    res.json({ success: true, message: 'Notification sent' });
   } else {
     res.status(500).json({ success: false, message: result.error });
   }

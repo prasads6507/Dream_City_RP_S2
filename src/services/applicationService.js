@@ -87,13 +87,25 @@ export const getUserApplications = async (discordId) => {
  * @param {string} userId - Auth user UID
  */
 export const submitApplication = async (data, type, userId) => {
-  return await addDoc(collection(db, COLLECTION_NAME), {
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), {
     ...data,
     type,
     userId,
     status: 'pending',
     createdAt: serverTimestamp()
   });
+
+  try {
+    await axios.post(`${BACKEND_URL}/api/notify-new-application`, {
+      name: data.discordName || data.fullName || 'Unknown',
+      discordId: data.discordId,
+      type: type
+    });
+  } catch (error) {
+    console.error('Failed to notify Discord about new application:', error);
+  }
+
+  return docRef;
 };
 
 /**
