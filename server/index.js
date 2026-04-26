@@ -156,9 +156,15 @@ app.post('/api/notify-user', async (req, res) => {
     }
   }
 
-  // Send notification to the department-specific Discord channel (for both approved & rejected)
-  const channelResult = await sendChannelNotification(type, status, name, discordId, metadata);
-  console.log(`📢 Channel notification result:`, channelResult);
+  // Send notification to the department-specific Discord channel (ONLY for approved & rejected)
+  let channelResult = { success: false };
+  if (status === 'approved' || status === 'rejected') {
+    channelResult = await sendChannelNotification(type, status, name, discordId, metadata);
+    console.log(`📢 Channel notification result:`, channelResult);
+  } else {
+    console.log(`ℹ️ Status is ${status}, skipping channel notification (DM only)`);
+    channelResult = { success: true }; // Treat as success since we intentionally skipped
+  }
   
   if (result.success) {
     res.json({ success: true, message: 'Notification sent and role assigned', channelNotification: channelResult.success });
