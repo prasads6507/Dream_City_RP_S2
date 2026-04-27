@@ -476,6 +476,7 @@ const AdminDashboard = () => {
   const counts = {
     all: scopedApps.length,
     pending: scopedApps.filter(a => a.status === 'pending').length,
+    scheduled: scopedApps.filter(a => a.status === 'scheduled').length,
     approved: scopedApps.filter(a => a.status === 'approved').length,
     rejected: scopedApps.filter(a => a.status === 'rejected').length,
   };
@@ -590,6 +591,10 @@ const AdminDashboard = () => {
               <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Pending Applications</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#F59E0B' }}>{counts.pending}</div>
             </div>
+            <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #3B82F6' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Scheduled Interviews</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#3B82F6' }}>{counts.scheduled}</div>
+            </div>
             <div className="sc-card" style={{ padding: '24px', borderLeft: '4px solid #10b981' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Approved Applications</div>
               <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#10b981' }}>{counts.approved}</div>
@@ -615,7 +620,7 @@ const AdminDashboard = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-end' }}>
             {/* Status Tabs */}
             <div style={{ display: 'flex', gap: '4px', background: 'rgba(8,8,12,0.8)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' }}>
-              {['all', 'pending', 'approved', 'rejected'].map(f => (
+              {['all', 'pending', 'scheduled', 'approved', 'rejected'].map(f => (
                 <button key={f} onClick={() => setFilter(f)} style={{
                   padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer',
                   fontWeight: 800, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '1px',
