@@ -170,7 +170,7 @@ function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
     description = `**${name}**! Your **${typeLabel}** application for **Dream City RP** has been **APPROVED**${rankText}.\n\nWelcome to the team! 🎉`;
   } else if (isScheduled) {
     if (isCivilian) {
-      description = `**${name}**, your application has reached the next stage! We have **SCHEDULED A WHITELIST INTERVIEW** for you.\n\n⏰ **Time**: 6PM - 10PM\n\nPlease be present in the **Waiting For Support** at the scheduled time. Thank you Team DCRP S2`;
+      description = `**${name}**, your application has reached the next stage! We have **SCHEDULED A WHITELIST INTERVIEW** for you.\n\nPlease be present in the **Waiting For Support**. Thank you Team DCRP S2`;
     } else {
       description = `**${name}**, your **${typeLabel}** application has reached the next stage! We have **SCHEDULED AN INTERVIEW** for you.\n\n📅 **Date**: ${metadata.interviewDate}\n⏰ **Time**: ${metadata.interviewTime || 'TBD'}\n\nPlease be present in the waiting room at the scheduled time.`;
     }
@@ -190,8 +190,6 @@ function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
 
   if (isScheduled && !isCivilian && metadata.interviewDate) {
     fields.push({ name: '📅 Interview', value: `${metadata.interviewDate} @ ${metadata.interviewTime || 'TBD'}`, inline: false });
-  } else if (isScheduled && isCivilian) {
-    fields.push({ name: '⏰ Time Range', value: '6PM - 10PM (WFS)', inline: false });
   }
 
   if (metadata.adminMessage) {
