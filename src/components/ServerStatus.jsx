@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { fetchServerStatus } from '../services/txAdminService';
 
 const ServerStatus = () => {
   const [serverData, setServerData] = useState(null);
@@ -12,23 +11,35 @@ const ServerStatus = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const data = await fetchServerStatus();
-        if (data.success) {
+        // Fetch directly from Cfx.re public API (browser-side, no backend needed)
+        const response = await fetch(`https://servers-frontend.cfx.re/api/servers/single/${SERVER_ID}`);
+        if (!response.ok) throw new Error('Server unreachable');
+        const json = await response.json();
+        const data = json.Data || json.data;
+
+        if (data) {
+          // Calculate uptime from the server's uptime field if available
+          let uptimeStr = 'Online';
+          if (data.vars && data.vars.uptime) {
+            const totalSec = parseInt(data.vars.uptime);
+            if (!isNaN(totalSec)) {
+              const hrs = Math.floor(totalSec / 3600);
+              const mins = Math.floor((totalSec % 3600) / 60);
+              uptimeStr = hrs > 0 ? `${hrs} hrs, ${mins} mins` : `${mins} mins`;
+            }
+          }
+
           setServerData({
-            hostname: data.hostname,
-            clients: data.players,
-            sv_maxclients: data.maxPlayers,
-            gametype: data.gametype,
-            mapname: data.mapname,
-            uptime: data.uptime,
-            ping: data.ping,
-            online: data.online,
-            queue: data.queue,
-            discordMembers: data.discordMembers,
-            staffOnline: data.staffOnline
+            hostname: data.hostname || 'Dream City Roleplay | Season 2',
+            clients: data.clients || 0,
+            sv_maxclients: data.sv_maxclients || 48,
+            gametype: data.gametype || 'Roleplay',
+            mapname: data.mapname || 'Los Santos',
+            uptime: uptimeStr,
+            online: true
           });
         } else {
-          throw new Error('Server unreachable');
+          throw new Error('No data');
         }
       } catch (err) {
         console.error('Failed to fetch server status:', err);
@@ -39,7 +50,6 @@ const ServerStatus = () => {
           gametype: 'Roleplay',
           mapname: 'Los Santos',
           uptime: 'Offline',
-          ping: 'N/A',
           online: false
         });
       } finally {
@@ -53,16 +63,19 @@ const ServerStatus = () => {
   }, []);
 
   const handleCopyIp = () => {
-    navigator.clipboard.writeText(`connect ${SERVER_ID}`);
+    navigator.clipboard.writeText(`connect cfx.re/join/${SERVER_ID}`);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
+  const isOnline = serverData?.online !== false;
+  const statusColor = isOnline ? '#10b981' : '#ef4444';
+
   const metrics = [
-    { label: 'ACTIVE', value: `${serverData?.clients || 0}/${serverData?.sv_maxclients || 48}`, icon: '👥', color: '#A78BFA' },
-    { label: 'STAFF', value: serverData?.staffOnline || 0, icon: '🛡️', color: '#ef4444' },
-    { label: 'DISCORD', value: serverData?.discordMembers || '...', icon: '💬', color: '#5865F2' },
-    { label: 'UPTIME', value: serverData?.uptime || 'Online', icon: '🕒', color: '#10b981' }
+    { label: 'STATUS', value: isOnline ? 'Online' : 'Offline', icon: isOnline ? '🟢' : '🔴', color: statusColor },
+    { label: 'PLAYERS', value: `${serverData?.clients || 0}/${serverData?.sv_maxclients || 48}`, icon: '👥', color: '#A78BFA' },
+    { label: 'UPTIME', value: serverData?.uptime || 'Online', icon: '🕒', color: '#3b82f6' },
+    { label: 'GAME', value: serverData?.gametype || 'Roleplay', icon: '🎮', color: '#f59e0b' }
   ];
 
   return (
@@ -90,13 +103,13 @@ const ServerStatus = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
                 width: '12px', height: '12px', borderRadius: '50%',
-                background: serverData?.online === false ? '#ef4444' : '#10b981', 
-                boxShadow: `0 0 15px ${serverData?.online === false ? '#ef4444' : '#10b981'}`,
-                animation: serverData?.online === false ? 'none' : 'pulse-cyan 2s ease-in-out infinite'
+                background: statusColor,
+                boxShadow: `0 0 15px ${statusColor}`,
+                animation: isOnline ? 'pulse-cyan 2s ease-in-out infinite' : 'none'
               }} />
               <div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#fff', marginBottom: '4px', textTransform: 'uppercase' }}>
-                  {serverData?.online === false ? 'OFFLINE' : 'ONLINE'}
+                  {isOnline ? 'ONLINE' : 'OFFLINE'}
                 </h3>
                 <p style={{ color: '#64748b', fontSize: '0.85rem' }}>{serverData?.hostname?.substring(0, 50) || 'DCRP - Los Santos'}</p>
               </div>
