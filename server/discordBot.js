@@ -361,5 +361,6 @@ module.exports = {
   sendChannelNotification,
   sendNewApplicationNotification,
   sendStaffActionLog,
-  DEPARTMENT_ROLES 
+  DEPARTMENT_ROLES,
+  client
 };

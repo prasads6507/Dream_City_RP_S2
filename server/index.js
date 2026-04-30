@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, sendNewApplicationNotification, sendStaffActionLog, DEPARTMENT_ROLES } = require('./discordBot');
+const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, sendNewApplicationNotification, sendStaffActionLog, DEPARTMENT_ROLES, client } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
