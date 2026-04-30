@@ -309,11 +309,6 @@ app.delete('/api/users/:uid', async (req, res) => {
 /**
  * txAdmin Proxy - Fetch Player List
  */
-});
-
-/**
- * txAdmin Proxy - Fetch Player List
- */
 app.get('/api/server/players', async (req, res) => {
   const txUrl = process.env.TX_ADMIN_URL;
   const txToken = process.env.TX_ADMIN_TOKEN;
