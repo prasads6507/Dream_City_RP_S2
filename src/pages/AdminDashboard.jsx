@@ -9,6 +9,7 @@ import {
 } from '../services/applicationService';
 import { getAllUsers, updateUserRole, signUp, createAdminAccount, fetchAdminsFromBackend } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
+import { fetchLivePlayers, performPlayerAction, sendAnnouncement } from '../services/txAdminService';
 import axios from 'axios';
 
 const DEPT_QUESTIONS = {
@@ -77,9 +78,11 @@ const AdminDashboard = () => {
   const userRole = userData?.role || 'admin';
   const isMainAdmin = userRole === 'admin';
 
-  const [activeTab, setActiveTab] = useState('applications'); // 'applications' or 'staff'
+  const [activeTab, setActiveTab] = useState('applications'); // 'applications', 'staff', or 'server'
   const [applications, setApplications] = useState([]);
   const [users, setUsers] = useState([]);
+  const [livePlayers, setLivePlayers] = useState([]);
+  const [announcement, setAnnouncement] = useState('');
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -125,7 +128,24 @@ const AdminDashboard = () => {
   useEffect(() => { 
     fetchApps();
     fetchUsers();
+    fetchPlayers();
   }, []);
+
+  const fetchPlayers = async () => {
+    try {
+      const data = await fetchLivePlayers();
+      setLivePlayers(data || []);
+    } catch (err) {
+      console.warn('Could not fetch live players:', err.message);
+    }
+  };
+
+  // Auto-refresh players when on server tab
+  useEffect(() => {
+    if (activeTab !== 'server') return;
+    const interval = setInterval(fetchPlayers, 15000);
+    return () => clearInterval(interval);
+  }, [activeTab]);
 
   useEffect(() => {
     setAppPage(1);
@@ -390,6 +410,38 @@ const AdminDashboard = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handlePlayerAction = async (action, target, reason = '', targetName = '') => {
+    setActionLoading(`player-${target}-${action}`);
+    try {
+      await performPlayerAction(action, target, { 
+        reason, 
+        staffName: userData?.name || 'Unknown Staff',
+        targetName 
+      });
+      setToast({ type: 'success', message: `Action ${action} successful!` });
+      fetchPlayers(); // Refresh list
+    } catch (err) {
+      setToast({ type: 'error', message: `Failed to ${action}: ${err.message}` });
+    }
+    setActionLoading(null);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSendAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcement.trim()) return;
+    setLoading(true);
+    try {
+      await sendAnnouncement(announcement, userData?.name || 'Unknown Staff');
+      setToast({ type: 'success', message: 'Announcement sent to server!' });
+      setAnnouncement('');
+    } catch (err) {
+      setToast({ type: 'error', message: 'Failed to send announcement.' });
+    }
+    setLoading(false);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleBulkDeleteStaff = async () => {
     const { deleteAdminAccount } = await import('../services/authService');
     const ids = Array.from(selectedStaffIds);
@@ -562,6 +614,18 @@ const AdminDashboard = () => {
               Staff Management
             </button>
           )}
+          <button 
+            onClick={() => setActiveTab('server')}
+            style={{ 
+              padding: '16px 4px', background: 'none', border: 'none', cursor: 'pointer',
+              color: activeTab === 'server' ? '#A78BFA' : '#64748b',
+              fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '2px',
+              borderBottom: activeTab === 'server' ? '2px solid #A78BFA' : '2px solid transparent',
+              transition: 'all 0.3s'
+            }}
+          >
+            Live Server
+          </button>
           {/* Department Role Badge */}
           {!isMainAdmin && (
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1045,6 +1109,100 @@ const AdminDashboard = () => {
                 </span>
               </div>
             )}
+          </div>
+        ) : activeTab === 'server' ? (
+          /* Live Server Management View */
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+              <div className="sc-card" style={{ padding: '32px' }}>
+                <h3 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '1.2rem', fontWeight: 900, marginBottom: '16px', color: '#A78BFA' }}>📢 Global Announcement</h3>
+                <form onSubmit={handleSendAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <textarea 
+                    placeholder="Type a message to send to all players..."
+                    value={announcement}
+                    onChange={(e) => setAnnouncement(e.target.value)}
+                    style={{
+                      width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                      borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none', minHeight: '80px', resize: 'none'
+                    }}
+                  />
+                  <button type="submit" className="sc-btn" style={{ fontSize: '0.75rem', padding: '12px' }}>
+                    Send Announcement
+                  </button>
+                </form>
+              </div>
+              
+              <div className="sc-card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '2px', color: '#64748b', marginBottom: '8px' }}>Active Players</div>
+                <div style={{ fontSize: '3.5rem', fontWeight: 900, color: '#A78BFA' }}>{livePlayers.length}</div>
+                <div style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 800 }}>● SERVER LIVE</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontFamily: '"Outfit", sans-serif', fontSize: '1.5rem', fontWeight: 900 }}>Online <span style={{ color: '#A78BFA' }}>Players</span></h3>
+              <button onClick={fetchPlayers} className="sc-btn-outline" style={{ fontSize: '0.7rem', padding: '8px 16px' }}>🔄 Refresh List</button>
+            </div>
+
+            <div className="sc-card" style={{ overflow: 'hidden' }}>
+              <div style={{ padding: '20px 32px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '80px 1fr 100px 100px 300px', fontWeight: 800, fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                <div>ID</div>
+                <div>Player Name</div>
+                <div>Ping</div>
+                <div>Health</div>
+                <div style={{ textAlign: 'right' }}>Actions</div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {livePlayers.length === 0 ? (
+                  <div style={{ padding: '60px', textAlign: 'center', color: '#64748b', opacity: 0.5 }}>No players online or server unreachable.</div>
+                ) : livePlayers.map(player => (
+                  <div key={player.id} style={{ padding: '20px 32px', display: 'grid', gridTemplateColumns: '80px 1fr 100px 100px 300px', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                    <div style={{ fontWeight: 900, color: '#A78BFA' }}>#{player.id}</div>
+                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{player.name}</div>
+                    <div style={{ color: player.ping < 100 ? '#10b981' : '#f59e0b', fontWeight: 800, fontSize: '0.8rem' }}>{player.ping}ms</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       <div style={{ width: '40px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${player.health || 100}%`, height: '100%', background: (player.health || 100) > 20 ? '#ef4444' : '#64748b' }} />
+                       </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={() => handlePlayerAction('heal', player.id, '', player.name)}
+                        disabled={actionLoading === `player-${player.id}-heal`}
+                        className="sc-btn" 
+                        style={{ padding: '8px 12px', fontSize: '0.65rem', background: '#10b981' }}
+                      >
+                        ❤️ {actionLoading === `player-${player.id}-heal` ? '...' : 'Revive'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const reason = window.prompt('Enter Kick Reason:');
+                          if (reason !== null) handlePlayerAction('kick', player.id, reason, player.name);
+                        }}
+                        disabled={actionLoading === `player-${player.id}-kick`}
+                        className="sc-btn-outline" 
+                        style={{ padding: '8px 12px', fontSize: '0.65rem', borderColor: 'rgba(245,158,11,0.3)', color: '#f59e0b' }}
+                      >
+                        👢 {actionLoading === `player-${player.id}-kick` ? '...' : 'Kick'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to KILL player ${player.name}?`)) {
+                            handlePlayerAction('command', player.id, { command: `kill ${player.id}` }, player.name);
+                          }
+                        }}
+                        disabled={actionLoading === `player-${player.id}-command`}
+                        className="sc-btn-outline" 
+                        style={{ padding: '8px 12px', fontSize: '0.65rem', borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }}
+                      >
+                        💀 {actionLoading === `player-${player.id}-command` ? '...' : 'Kill'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           /* Staff Management View */

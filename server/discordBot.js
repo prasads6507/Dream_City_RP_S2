@@ -324,11 +324,42 @@ async function sendNewApplicationNotification(name, discordId, type) {
   }
 }
 
+/**
+ * Log staff actions taken from the website (txAdmin actions)
+ */
+async function sendStaffActionLog(staffName, action, targetName, targetId, reason = '') {
+  try {
+    const channelId = '1498015267987521616'; // Using the same admin log channel
+    const channel = await client.channels.fetch(channelId);
+    if (!channel) return { success: false };
+
+    const embed = {
+      title: '🛡️ Website Admin Action',
+      color: 0xf59e0b, // Amber
+      fields: [
+        { name: '👤 Staff Member', value: staffName, inline: true },
+        { name: '🎮 Action', value: action.toUpperCase(), inline: true },
+        { name: '🎯 Target', value: `${targetName} (ID: ${targetId})`, inline: false },
+        { name: '📝 Reason/Detail', value: reason || 'N/A', inline: false }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: 'Dream City RP — Staff Audit Log' }
+    };
+
+    await channel.send({ embeds: [embed] });
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to log staff action:', err.message);
+    return { success: false };
+  }
+}
+
 module.exports = { 
   sendStatusDM, 
   assignGuildRole, 
   removeDepartmentRoles, 
   sendChannelNotification,
   sendNewApplicationNotification,
+  sendStaffActionLog,
   DEPARTMENT_ROLES 
 };

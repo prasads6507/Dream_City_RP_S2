@@ -4,7 +4,7 @@ const axios = require('axios');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, sendNewApplicationNotification, DEPARTMENT_ROLES } = require('./discordBot');
+const { sendStatusDM, assignGuildRole, removeDepartmentRoles, sendChannelNotification, sendNewApplicationNotification, sendStaffActionLog, DEPARTMENT_ROLES } = require('./discordBot');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -303,6 +303,204 @@ app.delete('/api/users/:uid', async (req, res) => {
   } catch (error) {
     console.error('❌ Deletion failed:', error.message);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * txAdmin Proxy - Fetch Player List
+ */
+});
+
+/**
+ * txAdmin Proxy - Fetch Player List
+ */
+app.get('/api/server/players', async (req, res) => {
+  const txUrl = process.env.TX_ADMIN_URL;
+  const txToken = process.env.TX_ADMIN_TOKEN;
+
+  if (!txUrl || !txToken) {
+    return res.status(503).json({ success: false, message: 'txAdmin not configured' });
+  }
+
+  try {
+    const response = await axios.get(`${txUrl}/query/players`, {
+      headers: { 'Authorization': `Bearer ${txToken}` },
+      timeout: 5000
+    });
+    res.json({ success: true, players: response.data });
+  } catch (error) {
+    console.error('❌ txAdmin Player Fetch Error:', error.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch players from txAdmin' });
+  }
+});
+
+/**
+ * Enhanced Server Status - Fetch player count, uptime, and metadata
+ * Proxies txAdmin (real-time) or falls back to Cfx.re API
+ */
+app.get('/api/server/status', async (req, res) => {
+  const txUrl = process.env.TX_ADMIN_URL;
+  const txToken = process.env.TX_ADMIN_TOKEN;
+  const GUILD_ID = process.env.DISCORD_GUILD_ID;
+  const SERVER_ID = '4gblo45'; // Configured FiveM Server ID
+
+  try {
+    let discordMembers = 0;
+    try {
+      if (client.isReady()) {
+        const guild = GUILD_ID ? await client.guilds.fetch(GUILD_ID) : client.guilds.cache.first();
+        if (guild) discordMembers = guild.memberCount;
+      }
+    } catch (dErr) {
+      console.warn('⚠️ Could not fetch Discord member count:', dErr.message);
+    }
+
+    // 1. Try txAdmin (Most Accurate & Real-time)
+    if (txUrl && txToken) {
+      try {
+        const [playersRes, infoRes] = await Promise.all([
+          axios.get(`${txUrl}/query/players`, { headers: { 'Authorization': `Bearer ${txToken}` }, timeout: 3000 }),
+          axios.get(`${txUrl}/stats.json`, { headers: { 'Authorization': `Bearer ${txToken}` }, timeout: 3000 })
+        ]).catch(() => [null, null]);
+
+        if (playersRes && playersRes.data) {
+          const players = playersRes.data;
+          let uptime = 'Online';
+          let maxPlayers = 48;
+          let queue = 0;
+          let staffOnline = 0;
+
+          // Count Staff Online
+          try {
+            if (db) {
+              const staffSnapshot = await db.collection('Users').where('role', 'in', ['admin', 'police', 'ems', 'mechanic']).get();
+              const staffDiscordIds = new Set(staffSnapshot.docs.map(doc => doc.data().discordId || doc.id));
+              
+              players.forEach(p => {
+                const discordId = p.identifiers.find(id => id.startsWith('discord:'))?.replace('discord:', '');
+                if (discordId && staffDiscordIds.has(discordId)) {
+                  staffOnline++;
+                }
+              });
+            }
+          } catch (sErr) {
+             console.warn('⚠️ Staff online count failed:', sErr.message);
+          }
+
+          if (infoRes && infoRes.data) {
+            const stats = infoRes.data;
+            // Format uptime
+            if (stats.uptime) {
+              const seconds = parseInt(stats.uptime);
+              const hours = Math.floor(seconds / 3600);
+              const minutes = Math.floor((seconds % 3600) / 60);
+              uptime = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+            }
+            maxPlayers = stats.maxClients || 48;
+            queue = stats.queue || 0;
+          }
+
+          return res.json({
+            success: true,
+            source: 'txAdmin',
+            online: true,
+            players: players.length,
+            maxPlayers,
+            queue,
+            staffOnline,
+            uptime,
+            discordMembers,
+            hostname: 'Dream City Roleplay | Season 2',
+            gametype: 'Roleplay',
+            mapname: 'Los Santos',
+            ping: '42ms'
+          });
+        }
+      } catch (txErr) {
+        console.warn('⚠️ txAdmin status fetch failed, falling back to Cfx.re:', txErr.message);
+      }
+    }
+
+    // 2. Fallback to Cfx.re Public API
+    const cfxRes = await axios.get(`https://servers-frontend.cfx.re/api/servers/single/${SERVER_ID}`, { timeout: 5000 });
+    const data = cfxRes.data.Data;
+
+    res.json({
+      success: true,
+      source: 'Cfx.re',
+      online: true,
+      players: data.clients || 0,
+      maxPlayers: data.sv_maxclients || 48,
+      queue: 0,
+      uptime: 'Online',
+      discordMembers,
+      hostname: data.hostname || 'Dream City Roleplay | Season 2',
+      gametype: data.gametype || 'Roleplay',
+      mapname: data.mapname || 'Los Santos',
+      ping: '42ms'
+    });
+
+  } catch (error) {
+    console.error('❌ Server Status Fetch Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server unreachable',
+      online: false,
+      players: 0,
+      maxPlayers: 48,
+      uptime: 'Offline',
+      discordMembers: 0
+    });
+  }
+});
+
+/**
+ * txAdmin Proxy - Perform Action
+ */
+app.post('/api/server/action', async (req, res) => {
+  const { action, target, reason, command, staffName, targetName } = req.body;
+  const txUrl = process.env.TX_ADMIN_URL;
+  const txToken = process.env.TX_ADMIN_TOKEN;
+
+  if (!txUrl || !txToken) {
+    return res.status(503).json({ success: false, message: 'txAdmin not configured' });
+  }
+
+  try {
+    let endpoint = '';
+    let data = {};
+
+    switch (action) {
+      case 'heal':
+        endpoint = '/player/heal';
+        data = { id: target };
+        break;
+      case 'kick':
+        endpoint = '/player/kick';
+        data = { id: target, reason: reason || 'Kicked by Staff from Website' };
+        break;
+      case 'command':
+        endpoint = '/fxadmin/commands';
+        data = { command: command };
+        break;
+      default:
+        return res.status(400).json({ success: false, message: 'Invalid action' });
+    }
+
+    const response = await axios.post(`${txUrl}${endpoint}`, data, {
+      headers: { 'Authorization': `Bearer ${txToken}` },
+      timeout: 5000
+    });
+
+    // Log to Discord for audit
+    if (staffName) {
+      await sendStaffActionLog(staffName, action, targetName || 'Unknown', target || 'Global', reason || command);
+    }
+
+    res.json({ success: true, data: response.data });
+  } catch (error) {
+    console.error(`❌ txAdmin Action Error (${action}):`, error.message);
+    res.status(500).json({ success: false, message: error.response?.data?.message || 'txAdmin action failed' });
   }
 });
 
