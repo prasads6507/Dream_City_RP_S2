@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { fetchServerStatus } from '../services/txAdminService';
 
 const ServerStatus = () => {
   const [serverData, setServerData] = useState(null);
@@ -11,35 +12,23 @@ const ServerStatus = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        // Fetch directly from Cfx.re public API (browser-side, no backend needed)
-        const response = await fetch(`https://servers-frontend.cfx.re/api/servers/single/${SERVER_ID}`);
-        if (!response.ok) throw new Error('Server unreachable');
-        const json = await response.json();
-        const data = json.Data || json.data;
-
-        if (data) {
-          // Calculate uptime from the server's uptime field if available
-          let uptimeStr = 'Online';
-          if (data.vars && data.vars.uptime) {
-            const totalSec = parseInt(data.vars.uptime);
-            if (!isNaN(totalSec)) {
-              const hrs = Math.floor(totalSec / 3600);
-              const mins = Math.floor((totalSec % 3600) / 60);
-              uptimeStr = hrs > 0 ? `${hrs} hrs, ${mins} mins` : `${mins} mins`;
-            }
-          }
-
+        const data = await fetchServerStatus();
+        if (data.success) {
           setServerData({
-            hostname: data.hostname || 'Dream City Roleplay | Season 2',
-            clients: data.clients || 0,
-            sv_maxclients: data.sv_maxclients || 48,
-            gametype: data.gametype || 'Roleplay',
-            mapname: data.mapname || 'Los Santos',
-            uptime: uptimeStr,
-            online: true
+            hostname: data.hostname,
+            clients: data.players,
+            sv_maxclients: data.maxPlayers,
+            gametype: data.gametype,
+            mapname: data.mapname,
+            uptime: data.uptime,
+            ping: data.ping,
+            online: data.online,
+            queue: data.queue,
+            discordMembers: data.discordMembers,
+            staffOnline: data.staffOnline
           });
         } else {
-          throw new Error('No data');
+          throw new Error('Server unreachable');
         }
       } catch (err) {
         console.error('Failed to fetch server status:', err);
@@ -50,6 +39,7 @@ const ServerStatus = () => {
           gametype: 'Roleplay',
           mapname: 'Los Santos',
           uptime: 'Offline',
+          ping: 'N/A',
           online: false
         });
       } finally {

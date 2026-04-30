@@ -416,9 +416,20 @@ app.get('/api/server/status', async (req, res) => {
       }
     }
 
-    // 2. Fallback to Cfx.re Public API
-    const cfxRes = await axios.get(`https://servers-frontend.cfx.re/api/servers/single/${SERVER_ID}`, { timeout: 5000 });
+    // 2. Fallback to Cfx.re Public API (using a more reliable domain)
+    const cfxRes = await axios.get(`https://servers-live.fivem.net/api/servers/single/${SERVER_ID}`, { 
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      timeout: 5000 
+    });
     const data = cfxRes.data.Data;
+
+    let uptime = 'Online';
+    if (data.vars && data.vars.uptime) {
+      const seconds = parseInt(data.vars.uptime);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      uptime = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    }
 
     res.json({
       success: true,
@@ -427,7 +438,8 @@ app.get('/api/server/status', async (req, res) => {
       players: data.clients || 0,
       maxPlayers: data.sv_maxclients || 48,
       queue: 0,
-      uptime: 'Online',
+      staffOnline: 0,
+      uptime,
       discordMembers,
       hostname: data.hostname || 'Dream City Roleplay | Season 2',
       gametype: data.gametype || 'Roleplay',
