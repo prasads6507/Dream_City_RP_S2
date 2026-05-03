@@ -27,16 +27,13 @@ const DEPT_QUESTIONS = {
     { id: 'q11', label: 'If someone breaks rules against you, what do you do?' }
   ],
   police: [
-    { id: 'pd1', label: 'Why do you want to join the Police Department?' },
-    { id: 'pd2', label: 'What qualities make a good police officer?' },
-    { id: 'pd3', label: 'Why should we choose you over other applicants?' },
-    { id: 'pd4', label: 'What does professionalism mean to you?' },
-    { id: 'pd5', label: 'A suspect starts running during arrest. What are your next steps?' },
-    { id: 'pd6', label: 'What is the difference between corruption RP and abuse?' },
-    { id: 'pd7', label: 'Two officers argue on radio during an active scene. What do you do?' },
-    { id: 'pd8', label: 'You are alone on patrol and multiple armed suspects begin robbing a store. What is your priority?' },
-    { id: 'pd9', label: 'During a foot chase, the suspect enters an apartment interior. How do you clear it safely?' },
-    { id: 'pd10', label: 'You accidentally shoot a civilian during crossfire. What next?' }
+    { id: 'pd1', label: 'Do you have any prior experience in roleplay as a police officer? If yes, please describe.' },
+    { id: 'pd2', label: 'Why do you want to join the Police Department on this server?' },
+    { id: 'pd3', label: 'If you encounter a civilian who is verbally disrespectful but non-violent, how would you handle the situation?' },
+    { id: 'pd4', label: 'During a traffic stop, a civilian refuses to provide their ID and begins arguing with you. What would your next steps be?' },
+    { id: 'pd5', label: 'How would you ensure that civilians understand their fines during processing?' },
+    { id: 'pd6', label: 'If a civilian flees during an arrest, what measures would you take to maintain realistic and balanced roleplay?' },
+    { id: 'pd7', label: 'A civilian accuses you of unfairly issuing a fine. How would you respond while staying in character?' }
   ],
   ems: [
     { id: 'ems1', label: 'Why do you want to join EMS?' },
