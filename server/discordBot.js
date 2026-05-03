@@ -36,12 +36,10 @@ const DEPARTMENT_ROLES = {
     base: '1493620529309945876',
     ranks: {
       'EMS Chief': '1493620527238221984',
-      'EMS Co Chief': '1493620528232005814',
-      'Paramedic': '1493620530362974360',
+      'EMS Co-Chief': '1493620528232005814',
       'Surgeon': '1493620531231064276',
-      'Doctor': '1493620532719910963',
-      'Sr Doctor': '1493620537933435060',
-      'Jr Doctor': '1493620538868891740',
+      'Paramedic': '1493620530362974360',
+      'Intern Doctor': '1493620532719910963',
       'Trainee': '1493620539950891010'
     }
   },
@@ -293,7 +291,13 @@ if (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN !== 'YOUR_DIS
  */
 async function sendNewApplicationNotification(name, discordId, type) {
   try {
-    const channelId = '1498015267987521616';
+    let channelId = '1498015267987521616'; // Default admin log channel
+    
+    // Route EMS applications to specific channel if provided
+    if (type && type.toLowerCase() === 'ems') {
+      channelId = '1500509643796119673';
+    }
+
     const channel = await client.channels.fetch(channelId);
     if (!channel) {
       console.error(`❌ Could not find channel: ${channelId}`);

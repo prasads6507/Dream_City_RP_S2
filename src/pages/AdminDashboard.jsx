@@ -64,8 +64,8 @@ const DEPT_RANKS = {
     'PROBATIONARY OFFICER', 'SOLO CADET', 'CADET'
   ],
   ems: [
-    'EMS Chief', 'EMS Co Chief', 'Paramedic', 'Surgeon', 
-    'Doctor', 'Sr Doctor', 'Jr Doctor', 'Trainee'
+    'EMS Chief', 'EMS Co-Chief', 'Surgeon', 'Paramedic', 
+    'Intern Doctor', 'Trainee'
   ],
   mechanic: [
     'Mechanic Chief', 'Garage Manager', 'Asst Manager', 
