@@ -37,6 +37,7 @@ const DEPARTMENT_ROLES = {
     ranks: {
       'EMS Chief': '1493620527238221984',
       'EMS Co-Chief': '1493620528232005814',
+      'EMS': '1493620529309945876',
       'Surgeon': '1493620531231064276',
       'Paramedic': '1493620530362974360',
       'Intern Doctor': '1493620532719910963',
