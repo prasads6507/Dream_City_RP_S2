@@ -979,6 +979,24 @@ const AdminDashboard = () => {
                               }}
                             />
                           </div>
+                          {app.type !== 'civilian' && (
+                            <div>
+                              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#A78BFA', letterSpacing: '2px', marginBottom: '12px', textTransform: 'uppercase', marginTop: '16px' }}>Select Job Position</div>
+                              <select 
+                                value={selectedRank[app.id] || ''} 
+                                onChange={(e) => setSelectedRank(prev => ({ ...prev, [app.id]: e.target.value }))}
+                                style={{
+                                  width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(167,139,250,0.2)',
+                                  borderRadius: '12px', color: '#fff', padding: '12px 16px', fontSize: '0.9rem', outline: 'none', marginBottom: '16px'
+                                }}
+                              >
+                                <option value="">-- Choose Level --</option>
+                                {(DEPT_RANKS[app.type] || []).map(r => (
+                                  <option key={r} value={r}>{r}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                           <div style={{ display: 'flex', gap: '16px' }}>
                           {['police', 'ems', 'mechanic'].includes(app.type) && (
                             <button 
@@ -1003,8 +1021,10 @@ const AdminDashboard = () => {
                               🗓️ Whitelist Interview
                             </button>
                           )}
-                          <button onClick={() => handleStatusUpdate(app, 'approved')} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
-                            {actionLoading === app.id ? 'Processing...' : '✓ Approve'}
+                          <button onClick={() => handleApproveWithRank(app)} disabled={actionLoading === app.id} className="sc-btn" style={{ flex: 1, padding: '16px' }}>
+                            {actionLoading === app.id ? 'Processing...' : (
+                                app.type === 'civilian' ? '✓ Approve' : `✓ Approve ${selectedRank[app.id] ? `as ${selectedRank[app.id]}` : ''}`
+                            )}
                           </button>
                           <button onClick={() => handleStatusUpdate(app, 'rejected')} disabled={actionLoading === app.id} className="sc-btn-outline" style={{ flex: 1, borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444', padding: '16px' }}>
                             {actionLoading === app.id ? 'Processing...' : '✕ Reject'}
