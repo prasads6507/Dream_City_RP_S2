@@ -157,7 +157,16 @@ function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
   const isCivilian = lowType === 'civilian' || lowType === 'whitelist';
   
   const typeLabel = isCivilian ? 'Whitelist' : type.charAt(0).toUpperCase() + type.slice(1);
-  const gifUrl = isApproved ? APPROVED_GIF : isScheduled ? SCHEDULED_GIF : REJECTED_GIF;
+  
+  let gifUrl = isApproved ? APPROVED_GIF : isScheduled ? SCHEDULED_GIF : REJECTED_GIF;
+  if (lowType === 'police') {
+    if (isApproved) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/police_approved.png';
+    } else if (!isScheduled) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/police_rejected.png';
+    }
+  }
+  
   const statusEmoji = isApproved ? '✅' : isScheduled ? '🗓️' : '❌';
   const statusText = isApproved ? 'APPROVED' : isScheduled ? 'SCHEDULED' : 'REJECTED';
   const color = isApproved ? 0x22c55e : isScheduled ? 0x06b6d4 : 0xef4444;
