@@ -30,7 +30,7 @@ const DEPT_QUESTIONS = {
     { id: 'pd7', label: 'A civilian accuses you of unfairly issuing a fine. How would you respond while staying in character?' }
   ],
   ems: [
-    { id: 'ems1', label: 'DATE OF BIRTH ?' },
+    { id: 'ems1', label: 'DATE OF BIRTH ?', format: 'DD/MM/YYYY' },
     { id: 'ems2', label: 'PRIOR EXPERIENCE IN SAEMS ?' },
     { id: 'ems3', label: 'WHY DO YOU WANT TO JOIN SAEMS ?' },
     { id: 'ems4', label: 'WHAT ARE YOUR ABILITIES AND SKILLS ?' },
@@ -475,6 +475,11 @@ const Apply = () => {
                       <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>
                           {idx + 1}. {q.label}
+                          {q.format && (
+                            <span className="blink-text" style={{ marginLeft: '8px', color: '#f59e0b' }}>
+                              ({q.format})
+                            </span>
+                          )}
                         </label>
                         <textarea 
                           className="sc-input" 
