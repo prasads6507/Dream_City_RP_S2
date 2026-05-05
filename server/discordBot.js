@@ -165,6 +165,18 @@ function createStatusEmbed(type = '', status, name, discordId, metadata = {}) {
     } else if (!isScheduled) {
       gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/police_rejected.png';
     }
+  } else if (lowType === 'mechanic') {
+    if (isApproved) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/mechanic_approved.png';
+    } else if (!isScheduled) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/mechanic_rejected.png';
+    }
+  } else if (lowType === 'ems') {
+    if (isApproved) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/ems_approved.png';
+    } else if (!isScheduled) {
+      gifUrl = 'https://raw.githubusercontent.com/prasads6507/Dream_City_RP_S2/main/server/assets/ems_rejected.png';
+    }
   }
   
   const statusEmoji = isApproved ? '✅' : isScheduled ? '🗓️' : '❌';
