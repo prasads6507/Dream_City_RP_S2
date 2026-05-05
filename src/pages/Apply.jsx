@@ -30,13 +30,14 @@ const DEPT_QUESTIONS = {
     { id: 'pd7', label: 'A civilian accuses you of unfairly issuing a fine. How would you respond while staying in character?' }
   ],
   ems: [
-    { id: 'ems1', label: 'Why do you want to join EMS?' },
-    { id: 'ems2', label: 'You arrive at an active shootout with injured people nearby. What do you do?' },
-    { id: 'ems3', label: 'A patient is unconscious after a car crash. What are your first steps?' },
-    { id: 'ems4', label: 'Two patients need help at once. One has minor injuries, one is bleeding heavily. What do you do?' },
-    { id: 'ems5', label: 'Police want to question a patient during treatment. What do you do?' },
-    { id: 'ems6', label: 'A downed criminal wants to instantly run after revive. What do you do?' },
-    { id: 'ems7', label: 'Can EMS enter an unsecured robbery scene to save someone?' }
+    { id: 'ems1', label: 'CHARACTER NAME ?' },
+    { id: 'ems2', label: 'DATE OF BIRTH ?' },
+    { id: 'ems3', label: 'PRIOR EXPERIENCE IN SAEMS ?' },
+    { id: 'ems4', label: 'WHY DO YOU WANT TO JOIN SAEMS ?' },
+    { id: 'ems5', label: 'WHAT ARE YOUR ABILITIES AND SKILLS ?' },
+    { id: 'ems6', label: 'HOW DO YOU HANDLE CRITICAL SITUATIONS ?' },
+    { id: 'ems7', label: 'HOW CAN YOU EXPLAIN THE SKILL (TEAM WORK) FOR THE DEVELOPMENT OF SAEMS ?' },
+    { id: 'ems8', label: 'Explain how you can start your journey in EMS (If not, add Backstory)' }
   ],
   mechanic: [
     { id: 'mech1', label: 'Why do you want to join the Mechanic Department?' },
