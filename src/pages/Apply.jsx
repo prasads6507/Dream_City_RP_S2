@@ -30,14 +30,12 @@ const DEPT_QUESTIONS = {
     { id: 'pd7', label: 'A civilian accuses you of unfairly issuing a fine. How would you respond while staying in character?' }
   ],
   ems: [
-    { id: 'ems1', label: 'CHARACTER NAME ?' },
-    { id: 'ems2', label: 'DATE OF BIRTH ?' },
-    { id: 'ems3', label: 'PRIOR EXPERIENCE IN SAEMS ?' },
-    { id: 'ems4', label: 'WHY DO YOU WANT TO JOIN SAEMS ?' },
-    { id: 'ems5', label: 'WHAT ARE YOUR ABILITIES AND SKILLS ?' },
-    { id: 'ems6', label: 'HOW DO YOU HANDLE CRITICAL SITUATIONS ?' },
-    { id: 'ems7', label: 'HOW CAN YOU EXPLAIN THE SKILL (TEAM WORK) FOR THE DEVELOPMENT OF SAEMS ?' },
-    { id: 'ems8', label: 'Explain how you can start your journey in EMS (If not, add Backstory)' }
+    { id: 'ems1', label: 'DATE OF BIRTH ?' },
+    { id: 'ems2', label: 'PRIOR EXPERIENCE IN SAEMS ?' },
+    { id: 'ems3', label: 'WHY DO YOU WANT TO JOIN SAEMS ?' },
+    { id: 'ems4', label: 'WHAT ARE YOUR ABILITIES AND SKILLS ?' },
+    { id: 'ems5', label: 'HOW DO YOU HANDLE CRITICAL SITUATIONS ?' },
+    { id: 'ems6', label: 'HOW CAN YOU EXPLAIN THE SKILL (TEAM WORK) FOR THE DEVELOPMENT OF SAEMS ?' }
   ],
   mechanic: [
     { id: 'mech1', label: 'Why do you want to join the Mechanic Department?' },
