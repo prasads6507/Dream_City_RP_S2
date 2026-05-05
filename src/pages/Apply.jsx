@@ -30,12 +30,12 @@ const DEPT_QUESTIONS = {
     { id: 'pd7', label: 'A civilian accuses you of unfairly issuing a fine. How would you respond while staying in character?' }
   ],
   ems: [
-    { id: 'ems1', label: 'DATE OF BIRTH ?', format: 'DD/MM/YYYY' },
-    { id: 'ems2', label: 'PRIOR EXPERIENCE IN SAEMS ?' },
-    { id: 'ems3', label: 'WHY DO YOU WANT TO JOIN SAEMS ?' },
-    { id: 'ems4', label: 'WHAT ARE YOUR ABILITIES AND SKILLS ?' },
-    { id: 'ems5', label: 'HOW DO YOU HANDLE CRITICAL SITUATIONS ?' },
-    { id: 'ems6', label: 'HOW CAN YOU EXPLAIN THE SKILL (TEAM WORK) FOR THE DEVELOPMENT OF SAEMS ?' }
+    { id: 'ems1', label: 'You arrive at a scene with: One unconscious patient breathing and One conscious patient shouting in pain. Who do you treat first, and why?' },
+    { id: 'ems2', label: 'You reach an accident, but the area is still unsafe (fire / active threat). Do you enter or hold position? Explain your reasoning.' },
+    { id: 'ems3', label: 'A patient is talking normally and suddenly collapses. List your first 3 actions in order.' },
+    { id: 'ems4', label: 'Write how you would assess an unconscious patient in proper EMS roleplay.' },
+    { id: 'ems5', label: 'Another EMS skips all steps and instantly "heals" the patient. What do you do?' },
+    { id: 'ems6', label: 'Most of the Players stopped joining the server as EMS and many people aren\'t really co-operative with you. In this situation what will you be doing, 1) leave EMS and join PD? 2) still be in EMS and take control yourself? Choose an option and explain it.' }
   ],
   mechanic: [
     { id: 'mech1', label: 'Why do you want to join the Mechanic Department?' },
